@@ -1,9 +1,18 @@
-import React, { Dispatch, SetStateAction } from "react";
+import React, { Dispatch, JSX, SetStateAction } from "react";
 
 export interface Exercice {
   id: number;
   name: string;
   description: string;
+}
+
+export interface Routine {
+  id: number;
+  name: string;
+  description: string;
+  trainingId?: number;
+  price: number;
+  localDateTime: string;
 }
 
 export interface ExerciceList {
@@ -23,11 +32,20 @@ export interface OnChangeFunction {
   (e: React.ChangeEvent<HTMLInputElement>): void;
 }
 
-export interface SearchBarProps {
+export interface DataListProps<T> {
+  initialData: T[];
+  service: any;
+  renderItem: (item: T) => JSX.Element;
+  placeholder?: string;
+  modalTitle: string;
+}
+
+export interface SearchBarProps<T> {
   placeholder: string;
-  data: Exercice[];
+  data: T[];
   searchFuncion: OnChangeFunction;
-  createFunction: CreateFunction;
+  createFunction: (newItem: T) => Promise<void>;
+  modalTitle: string;
 }
 
 interface CreateFunction {
@@ -39,12 +57,12 @@ export interface SearchProps {
   searchFunction: OnChangeFunction;
 }
 
-export interface CreateContentDialogProps {
+export interface CreateContentDialogProps<T> {
   isOpen: boolean;
   setOpen: Dispatch<SetStateAction<boolean>>;
   onClose: () => void;
   title: string;
-  onCreate: CreateFunction;
+  onCreate: (newItem: T) => Promise<void>;
 }
 
 export interface Exception {

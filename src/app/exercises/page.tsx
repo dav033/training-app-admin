@@ -1,15 +1,18 @@
-import { getExercises } from "../../lib/fetchData";
+"use server";
+
+import DataList from "@/components/DataList";
+import { ExerciseService } from "../services/exerciseService";
 import ExerciseList from "./ExerciseList";
+import { Exception, Exercice } from "@/types";
+import Exercise from "@/ui/Exercise";
 
-export default async function routines() {
-  const response = await getExercises();
+export default async function Exercises() {
+  let response = await ExerciseService.getAll();
 
-  console.log(response);
   return (
     <div className="max-w-full container bg-blue-">
       <button>Create Exercise</button>
-
-      <ExerciseList exercices={response} />
+      <ExerciseList exercises={response} />
     </div>
   );
 }

@@ -9,7 +9,7 @@ export default function Search(props: SearchProps) {
       <CiSearch className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400" />
       <Input
         type="text"
-        placeholder="Buscar ejercicio..."
+        placeholder={placeholder}
         className="pl-8 bg-gray-800 text-white placeholder-gray-400 border-gray-700 w-full"
         onChange={searchFunction}
       />

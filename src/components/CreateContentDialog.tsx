@@ -13,7 +13,9 @@ import { DialogTrigger } from "@/ui/dialog/DialogTrigger";
 import { FiPlus } from "react-icons/fi";
 import { DialogContent } from "@/ui/dialog/DialogContent";
 import { DialogTitle } from "@/ui/dialog/DialogTitle";
-export default function CreateContentDialog(props: CreateContentDialogProps) {
+export default function CreateContentDialog(
+  props: CreateContentDialogProps<any>
+) {
   const { isOpen, onClose, title, onCreate, setOpen } = props;
 
   const [name, setName] = useState("");

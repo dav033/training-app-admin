@@ -25,4 +25,12 @@ function cn(...classes: ClassValue[]): string {
     .join(" "); // Une todas las clases con un espacio
 }
 
-export { cn };
+function axiosDuplicateErrorHandler(status: number, name: string) {
+  if (status === 409) {
+    alert(`Este ${name} ya existe. Intenta con otro nombre.`);
+  } else {
+    alert(`Ocurrió un error al crear el ${name}. Inténtalo más tarde.`);
+  }
+}
+
+export { cn, axiosDuplicateErrorHandler };
