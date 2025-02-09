@@ -1,5 +1,5 @@
 import apiClient from "@/lib/apiClient";
-import { Exercice, Routine } from "@/types";
+import { CreateItem, Exercice, Routine } from "@/types";
 
 export const RoutineService = {
   async getAll(): Promise<Routine[]> {
@@ -8,7 +8,8 @@ export const RoutineService = {
     return response.data;
   },
 
-  async create(exercise: Exercice): Promise<Routine> {
+  async create(exercise: CreateItem): Promise<Routine> {
+    console.log("AA", exercise);
     const response = await apiClient.post("/admin/routine", exercise);
 
     return response.data;

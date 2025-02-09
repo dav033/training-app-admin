@@ -1,17 +1,19 @@
+// src/components/DataList.tsx
 "use client";
+
 import SearchBar from "@/components/SearchBar";
 import { useDataList } from "@/hooks/useDataList";
 import { DataListProps } from "@/types";
 import { SetStateAction } from "react";
 
-export default function DataList<T>({
+export default function DataList({
   initialData,
   service,
   renderItem,
   placeholder = "Buscar...",
   modalTitle,
-}: DataListProps<T>) {
-  const { data, filteredData, setBusqueda, createItem } = useDataList<T>(
+}: DataListProps) {
+  const { data, filteredData, setBusqueda, createItem } = useDataList(
     initialData,
     service
   );
@@ -21,9 +23,9 @@ export default function DataList<T>({
       <SearchBar
         placeholder={placeholder}
         data={data}
-        searchFuncion={(e: { target: { value: SetStateAction<string> } }) =>
-          setBusqueda(e.target.value)
-        }
+        searchFuncion={(
+          e: { target: { value: SetStateAction<string> } }
+        ) => setBusqueda(e.target.value)}
         createFunction={createItem}
         modalTitle={modalTitle}
       />

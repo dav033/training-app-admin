@@ -1,3 +1,4 @@
+// src/components/SearchBar.tsx
 "use client";
 
 import { useState } from "react";
@@ -5,9 +6,8 @@ import Search from "@/ui/input/Search";
 import { SearchBarProps } from "@/types";
 import CreateContentDialog from "./CreateContentDialog";
 
-export default function SearchBar<T>(props: SearchBarProps<T>) {
-  const { data, placeholder, searchFuncion, createFunction, modalTitle } =
-    props;
+export default function SearchBar(props: SearchBarProps) {
+  const { data, placeholder, searchFuncion, createFunction, modalTitle } = props;
 
   const [open, setOpen] = useState(false);
 

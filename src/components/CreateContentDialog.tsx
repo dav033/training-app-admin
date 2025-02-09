@@ -1,7 +1,7 @@
+// src/components/CreateContentDialog.tsx
 "use client";
 
 import { useState } from "react";
-
 import { CreateContentDialogProps } from "@/types";
 
 import { Dialog } from "@/ui/dialog/Dialog";
@@ -13,17 +13,26 @@ import { DialogTrigger } from "@/ui/dialog/DialogTrigger";
 import { FiPlus } from "react-icons/fi";
 import { DialogContent } from "@/ui/dialog/DialogContent";
 import { DialogTitle } from "@/ui/dialog/DialogTitle";
-export default function CreateContentDialog(
-  props: CreateContentDialogProps<any>
-) {
+
+export default function CreateContentDialog(props: CreateContentDialogProps) {
   const { isOpen, onClose, title, onCreate, setOpen } = props;
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
 
-  const handleCreate = () => {
-    onCreate({ name, description });
-    onClose();
+  const handleCreate = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    try {
+      // Se envía la request de creación con name y description.
+      const createdItem = await onCreate({ name, description });
+      console.log("Objeto creado:", createdItem);
+      setName("");         // Limpiar el campo name
+      setDescription("");  // Limpiar el campo description
+      onClose();           // Cerrar el diálogo
+    } catch (error) {
+      console.error("Error al crear el item:", error);
+      // Aquí se puede mostrar un mensaje de error al usuario.
+    }
   };
 
   return (
