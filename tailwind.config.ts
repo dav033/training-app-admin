@@ -14,6 +14,9 @@ export default {
         background: "var(--background)",
         foreground: "var(--foreground)",
       },
+      fontFamily: {
+        sans: ['var(--font-lexend)', 'sans-serif'],
+      },
     },
   },
   plugins: [],

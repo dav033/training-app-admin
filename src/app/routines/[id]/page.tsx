@@ -1,3 +1,18 @@
-export default async function Routine() {
-  return <div>hola</div>;
+import { RoutineService } from "@/app/services/routineService";
+import RoutineData from "./RoutineData";
+
+interface Params {
+  id: string;
+}
+
+export default async function Routine({ params }: { params: Params }) {
+  const { id } = params;
+
+  const response = await RoutineService.getAllRoutineData(parseInt(id));
+  console.log(response);
+  return (
+    <div className="p-3">
+      <RoutineData {...response} />
+    </div>
+  );
 }
