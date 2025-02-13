@@ -4,15 +4,15 @@
 import { useState } from "react";
 import { CreateContentDialogProps } from "@/types";
 
-import { Dialog } from "@/ui/dialog/Dialog";
-import { DialogHeader } from "@/ui/dialog/DialogHeader";
-import { DialogFooter } from "@/ui/dialog/DialogFooter";
-import { Button } from "@/ui/Button";
-import { Input } from "@/ui/input/Input";
-import { DialogTrigger } from "@/ui/dialog/DialogTrigger";
+import { Dialog } from "@/components/ui/dialog/Dialog";
+import { DialogHeader } from "@/components/ui/dialog/DialogHeader";
+import { DialogFooter } from "@/components/ui/dialog/DialogFooter";
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/input/Input";
+import { DialogTrigger } from "@/components/ui/dialog/DialogTrigger";
 import { FiPlus } from "react-icons/fi";
-import { DialogContent } from "@/ui/dialog/DialogContent";
-import { DialogTitle } from "@/ui/dialog/DialogTitle";
+import { DialogContent } from "@/components/ui/dialog/DialogContent";
+import { DialogTitle } from "@/components/ui/dialog/DialogTitle";
 
 export default function CreateContentDialog(props: CreateContentDialogProps) {
   const { isOpen, onClose, title, onCreate, setOpen } = props;

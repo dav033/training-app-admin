@@ -1,7 +1,7 @@
 // src/components/DataList.tsx
 "use client";
 
-import SearchBar from "@/components/SearchBar";
+import SearchBar from "@/components/common/SearchBar";
 import { useDataList } from "@/hooks/useDataList";
 import { DataListProps } from "@/types";
 import { SetStateAction } from "react";

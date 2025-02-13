@@ -1,5 +1,5 @@
 import { SearchProps } from "@/types";
-import { Input } from "@/ui/input/Input";
+import { Input } from "@/components/ui/input/Input";
 import { CiSearch } from "react-icons/ci";
 
 export default function Search(props: SearchProps) {

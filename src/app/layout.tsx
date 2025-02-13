@@ -1,4 +1,4 @@
-import Drawer from "@/ui/Drawer";
+import Drawer from "@/components/ui/Drawer";
 import { Lexend } from "next/font/google";
 const lexend = Lexend({
   subsets: ["latin"],

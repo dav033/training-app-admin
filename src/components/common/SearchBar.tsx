@@ -2,7 +2,7 @@
 "use client";
 
 import { useState } from "react";
-import Search from "@/ui/input/Search";
+import Search from "@/components/ui/input/Search";
 import { SearchBarProps } from "@/types";
 import CreateContentDialog from "./CreateContentDialog";
 

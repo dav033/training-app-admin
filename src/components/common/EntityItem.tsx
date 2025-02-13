@@ -1,10 +1,10 @@
-import { ExerciseItemProps } from "@/types";
+import { EntityItemProps } from "@/types";
 import Image from "next/image";
-import ImagePlaceHoler from "../../public/ejercicios-basicos-de-gimnasio.webp";
+import ImagePlaceHoler from "../../../public/ejercicios-basicos-de-gimnasio.webp";
 import { usePathname } from "next/navigation";
 import { useRouter } from "next/navigation";
 
-export default function Exercise({ name, id }: ExerciseItemProps) {
+export default function EntityItem({ name, id }: EntityItemProps) {
   const router = useRouter();
 
   const pathname = usePathname();

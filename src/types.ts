@@ -1,4 +1,5 @@
 import React, { Dispatch, JSX, SetStateAction } from "react";
+import { CSS } from "@dnd-kit/utilities";
 
 export type DataItem = {
   id: number;
@@ -21,7 +22,7 @@ export interface ExerciceList {
   exercices: Exercice[];
 }
 
-export interface ExerciseItemProps {
+export interface EntityItemProps {
   id: number;
   name: string;
 }
@@ -86,8 +87,8 @@ export interface RoundExerciseData {
 export interface Round {
   id: number;
   routineId: number;
-  roundTypeId: number;
-  rest: number;
+  roundTypeId?: number;
+  rest?: number;
   roundPosition: number;
 }
 
@@ -98,7 +99,7 @@ export interface RoundData {
 
 export interface RoutineAllData {
   routine: Routine;
-  roundsData: RoundData[];
+  roundData?: RoundData[];
 }
 
 export interface RoutineInformationProps {
@@ -113,4 +114,25 @@ export interface RoutineInformationEditProps extends RoutineInformationProps {
   id: number;
   handleIsEditing: () => void;
   handleInformationChange: (name: string, description: string) => void;
+}
+
+export interface RoutineComponentProps {
+  id: number;
+  name: string;
+  description: string;
+}
+
+export interface CreateRound {
+  routineId: number;
+  roundPosition: number;
+}
+
+export interface roundItemProps {
+  roundData: RoundData;
+  deleteRound: (id: number) => void;
+  ref: (node: HTMLElement | null) => void;
+  style: {
+    transform?: string;
+    transition?: string;
+  };
 }

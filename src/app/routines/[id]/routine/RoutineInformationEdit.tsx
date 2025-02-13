@@ -1,7 +1,7 @@
 import { RoutineInformationEditProps } from "@/types";
-import { Button } from "@/ui/Button";
-import { Input } from "@/ui/input/Input";
-import { Textarea } from "@/ui/input/TextArea";
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/input/Input";
+import { Textarea } from "@/components/ui/input/TextArea";
 import { RoutineService } from "@/app/services/routineService";
 
 export default function RoutineInformationEdit(

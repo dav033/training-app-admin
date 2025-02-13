@@ -1,9 +1,9 @@
 "use client";
 import { Exercice } from "@/types";
-import Exercise from "@/ui/Exercise";
+import EntityItem from "@/components/common/EntityItem";
 
 import { ExerciseService } from "../services/exerciseService";
-import DataList from "@/components/DataList";
+import DataList from "@/components/common/DataList";
 
 interface ExerciseProps {
   exercises: Exercice[];
@@ -15,7 +15,7 @@ export default function ExerciseList({ exercises }: ExerciseProps) {
       <DataList
         initialData={exercises}
         service={ExerciseService}
-        renderItem={(exercise) => <Exercise {...exercise} />}
+        renderItem={(exercise) => <EntityItem {...exercise} />}
         placeholder="Search Exercise"
         modalTitle="Create Exercise"
       />

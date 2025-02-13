@@ -1,5 +1,5 @@
 import { RoutineService } from "@/app/services/routineService";
-import RoutineData from "./RoutineData";
+import RoutineData from "./routine/RoutineData";
 
 interface Params {
   id: string;
