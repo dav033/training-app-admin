@@ -20,7 +20,6 @@ apiClient.interceptors.request.use(
     // const token = localStorage.getItem("authToken");
 
     const data = await getToken();
-    console.log("Data", data);
 
     const token = data.session?.access_token;
     if (token) {

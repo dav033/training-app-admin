@@ -15,7 +15,7 @@ import { DialogContent } from "@/components/ui/dialog/DialogContent";
 import { DialogTitle } from "@/components/ui/dialog/DialogTitle";
 
 export default function CreateContentDialog(props: CreateContentDialogProps) {
-  const { isOpen, onClose, title, onCreate, setOpen } = props;
+  const { isOpen, onClose, title, onCreate, setOpen, children } = props;
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -25,26 +25,29 @@ export default function CreateContentDialog(props: CreateContentDialogProps) {
     try {
       // Se envía la request de creación con name y description.
       const createdItem = await onCreate({ name, description });
-      console.log("Objeto creado:", createdItem);
-      setName("");         // Limpiar el campo name
-      setDescription("");  // Limpiar el campo description
-      onClose();           // Cerrar el diálogo
+
+      setName(""); // Limpiar el campo name
+      setDescription(""); // Limpiar el campo description
+      onClose(); // Cerrar el diálogo
     } catch (error) {
       console.error("Error al crear el item:", error);
-      // Aquí se puede mostrar un mensaje de error al usuario.
     }
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button
-          variant="outline"
-          size="icon"
-          className="bg-blue-600 hover:bg-blue-700 text-white"
-        >
-          <FiPlus className="h-4 w-4" />
-        </Button>
+        {children ? (
+          children
+        ) : (
+          <Button
+            variant="outline"
+            size="icon"
+            className="bg-blue-600 hover:bg-blue-700 text-white"
+          >
+            <FiPlus className="h-4 w-4" />
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>

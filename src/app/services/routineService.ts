@@ -9,7 +9,6 @@ export const RoutineService = {
   },
 
   async create(exercise: CreateItem): Promise<Routine> {
-    console.log("AA", exercise);
     const response = await apiClient.post("/admin/routine", exercise);
 
     return response.data;

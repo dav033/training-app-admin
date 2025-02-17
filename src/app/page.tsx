@@ -30,7 +30,7 @@ export default function LoginPage() {
     const { data: authListener } = supabase.auth.onAuthStateChange(
       (_event, session) => {
         setSession(session);
-        console.log("Cambio en la sesión:", session);
+        
       }
     );
 

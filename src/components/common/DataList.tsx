@@ -23,9 +23,9 @@ export default function DataList({
       <SearchBar
         placeholder={placeholder}
         data={data}
-        searchFuncion={(
-          e: { target: { value: SetStateAction<string> } }
-        ) => setBusqueda(e.target.value)}
+        searchFuncion={(e: { target: { value: SetStateAction<string> } }) =>
+          setBusqueda(e.target.value)
+        }
         createFunction={createItem}
         modalTitle={modalTitle}
       />

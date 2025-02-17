@@ -13,8 +13,7 @@ export default function Drawer() {
   ];
 
   return (
-    <div className="flex h-screen flex-col justify-start bg-[#121212] w-80 p-4">
-      {/* Botón de menú hamburguesa (si deseas agregar funcionalidad en el futuro) */}
+    <div className="fixed min-h-screen flex-col justify-start bg-[#121212] w-80 p-4  mr-64">
       <button className="text-gray-400 text-2xl self-end">☰</button>
 
       <ul className="mt-6 space-y-2">

@@ -1,5 +1,4 @@
 import { RoutineInformationProps } from "@/types";
-import { Button } from "@/components/ui/Button";
 import { MdOutlineEdit } from "react-icons/md";
 
 export default function RoutineInformation(props: RoutineInformationProps) {

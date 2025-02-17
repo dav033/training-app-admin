@@ -1,60 +1,108 @@
 "use client";
 
 import { BiPlus } from "react-icons/bi";
-import { RoundData, RoutineAllData } from "@/types";
-import { useState, useRef, useEffect } from "react";
+import { Exercice, RoundData, RoundExercise, RoutineAllData } from "@/types";
+import { useState } from "react";
 import RoutineInformationComponent from "./RoutineInformationComponent";
-import Round from "../Round";
 import { Button } from "@/components/ui/Button";
 import { RoundService } from "@/app/services/RoundService";
 import Rounds from "../Rounds";
 
-export default function RoutineData(props: RoutineAllData) {
-  const { routine, roundData } = props;
-  const [rounds, setRounds] = useState<RoundData[]>(roundData ? roundData : []);
+export default function RoutineData({ routine, roundData, exercises }: RoutineAllData) {
+  const [rounds, setRounds] = useState<RoundData[]>(roundData || []);
 
   const createRound = async () => {
-    const response = await RoundService.createRound({
-      routineId: routine.id,
-      roundPosition: rounds.length + 1,
-    });
-
-    setRounds([
-      ...rounds,
-      {
-        round: response,
-        roundExerciseData: [],
-      },
-    ]);
+    try {
+      const response = await RoundService.createRound({
+        routineId: routine.id,
+        roundPosition: rounds.length + 1,
+      });
+      setRounds((prevRounds) => [
+        ...prevRounds,
+        { round: response, roundExerciseData: [] },
+      ]);
+    } catch (error) {
+      console.error("Error creating round:", error);
+    }
   };
 
   const deleteRound = async (id: number) => {
-    const updatedRounds = await RoundService.DeleteRound(id, routine.id);
+    try {
+      const updatedRounds = await RoundService.DeleteRound(id, routine.id);
+      setRounds(() =>
+        updatedRounds.map((round) => {
+          const roundDataFound = roundData?.find((rd) => rd.round.id === round.id);
+          return {
+            round,
+            roundExerciseData: roundDataFound ? roundDataFound.roundExerciseData : [],
+          };
+        })
+      );
+    } catch (error) {
+      console.error("Error deleting round:", error);
+    }
+  };
 
-    setRounds(() => {
-      return updatedRounds.map((round) => {
-        const roundDataFound = props.roundData?.find(
-          (roundData) => roundData.round.id === round.id
-        );
-        return {
-          round,
-          roundExerciseData: roundDataFound
-            ? roundDataFound.roundExerciseData
-            : [],
-        };
-      });
-    });
+  const addRoundExercise = (roundExercise: RoundExercise, exercise: Exercice) => {
+    setRounds((prevRounds) =>
+      prevRounds.map((round) =>
+        round.round.id === roundExercise.roundId
+          ? {
+              ...round,
+              roundExerciseData: [
+                ...round.roundExerciseData,
+                { roundExercise, exercise },
+              ],
+            }
+          : round
+      )
+    );
+  };
+
+  const removeRoundExercise = (roundExerciseId: number) => {
+    setRounds((prevRounds) =>
+      prevRounds.map((round) => ({
+        ...round,
+        roundExerciseData: round.roundExerciseData.filter(
+          (red) => red.roundExercise.id !== roundExerciseId
+        ),
+      }))
+    );
+  };
+
+  const updateExerciseRoundRepetitions = (roundExerciseId: number, reps: number) => {
+    setRounds((prevRounds) =>
+      prevRounds.map((round) => ({
+        ...round,
+        roundExerciseData: round.roundExerciseData.map((red) =>
+          red.roundExercise.id === roundExerciseId
+            ? {
+                ...red,
+                roundExercise: { ...red.roundExercise, repetitions: reps },
+              }
+            : red
+        ),
+      }))
+    );
   };
 
   return (
-    <div className=" overflow-x-hidden overflow-y-hidden p-2">
+    <div className="overflow-hidden p-2">
       <RoutineInformationComponent
         id={routine.id}
         name={routine.name}
         description={routine.description}
       />
 
-      <Rounds rounds={rounds} setRounds={setRounds} deleteRound={deleteRound} />
+      <Rounds
+        rounds={rounds}
+        setRounds={setRounds}
+        deleteRound={deleteRound}
+        addRoundExercise={addRoundExercise}
+        exercises={exercises}
+        removeRoundExercise={removeRoundExercise}
+        updateExerciseRoundRepetitions={updateExerciseRoundRepetitions}
+      />
 
       <Button
         className="border-2 border-red-300 text-red-300"

@@ -17,14 +17,12 @@ export default function RoutineInformationEdit(
     const name = formData.get("name") as string;
     const description = formData.get("description") as string;
 
-    console.log("uwu", name, description);
 
     try {
       const response = await RoutineService.updateRoutine(id, {
         name,
         description,
       });
-      console.log("uwu", response);
       handleInformationChange(name, description);
       handleIsEditing();
     } catch (error) {
