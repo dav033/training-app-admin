@@ -1,18 +1,19 @@
 "use client";
 
+import React, { useState, useCallback, useMemo } from "react";
 import { Button } from "@/components/ui/Button";
 import { DialogHeader } from "@/components/ui/dialog/DialogHeader";
 import { Dialog } from "@/components/ui/dialog/Dialog";
 import { DialogContent } from "@/components/ui/dialog/DialogContent";
 import { DialogTitle } from "@/components/ui/dialog/DialogTitle";
 import { DialogTrigger } from "@/components/ui/dialog/DialogTrigger";
-import React, { useMemo } from "react";
-import { AddExerciseProps, Exercice} from "@/types";
-import { Dumbbell, Search } from "lucide-react";
-import ExerciseModalItem from "./ExerciseModalItem";
-import { RoundExerciseService } from "@/app/services/roundExerciseService";
 import { DialogFooter } from "@/components/ui/dialog/DialogFooter";
 import { Input } from "@/components/ui/input/Input";
+import { Dumbbell, Search } from "lucide-react";
+import { AddExerciseProps, Exercice } from "@/types";
+import ExerciseModalItem from "./ExerciseModalItem";
+import { RoundExerciseService } from "@/app/services/roundExerciseService";
+import useFilteredExercises from "@/hooks/useFilteredExercises";
 
 export default function AddExercise({
   isOpen,
@@ -22,35 +23,73 @@ export default function AddExercise({
   roundData,
   addRoundExercise,
 }: AddExerciseProps) {
-  const [selectedExercise, setSelectedExercise] =
-    React.useState<Exercice | null>(null);
-  const [searchTerm, setSearchTerm] = React.useState("");
+  const { filteredExercises, searchTerm, setSearchTerm } = useFilteredExercises(exercises);
+  const [selectedExercise, setSelectedExercise] = useState<Exercice | null>(null);
 
-  const filteredExercises = useMemo(() => {
-    return exercises.filter((exercise) =>
-      exercise.name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, [exercises, searchTerm]);
+  // Extraemos propiedades de roundData para mayor claridad
+  const { round, roundExerciseData } = roundData;
 
-  const addExercise = async (exercise: Exercice, index: number) => {
+  const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value);
+  }, [setSearchTerm]);
+
+  const addExercise = useCallback(async (exercise: Exercice, index: number) => {
     const response = await RoundExerciseService.createRoundExercise({
-      roundId: roundData.round.id,
+      roundId: round.id,
       exerciseId: exercise.id,
       exercisePosition: index + 1,
     });
     addRoundExercise(response, exercise);
-  };
+  }, [round.id, addRoundExercise]);
 
-  const addSelectedExercise = () => {
-    if (selectedExercise) {
-      const index = roundData.roundExerciseData.length;
-      addExercise(selectedExercise, index);
-      setSelectedExercise(null);
-      onClose();
+  const addSelectedExercise = useCallback(() => {
+    if (!selectedExercise) return;
+
+    const isDuplicate = roundExerciseData.some(
+      (roundExercise) => roundExercise.exercise.id === selectedExercise.id
+    );
+
+    if (isDuplicate) {
+      alert("El ejercicio ya ha sido agregado.");
+      return;
     }
-  };
 
-  const stopPropagation = (e: React.SyntheticEvent) => e.stopPropagation();
+    const index = roundExerciseData.length;
+    addExercise(selectedExercise, index);
+    setSelectedExercise(null);
+    onClose();
+  }, [selectedExercise, roundExerciseData, addExercise, onClose]);
+
+  const handleSelectExercise = useCallback((exercise: Exercice) => {
+    setSelectedExercise(exercise);
+  }, []);
+
+  const stopPropagation = useCallback((e: React.SyntheticEvent) => {
+    e.stopPropagation();
+  }, []);
+
+  const renderedExercises = useMemo(() => {
+    if (filteredExercises.length > 0) {
+      return (
+        <div className="max-h-[300px] overflow-y-auto">
+          {filteredExercises.map((exercise, index) => (
+            <ExerciseModalItem
+              key={exercise.id}
+              exercise={exercise}
+              index={index}
+              onClick={() => handleSelectExercise(exercise)}
+              isSelected={selectedExercise?.id === exercise.id}
+            />
+          ))}
+        </div>
+      );
+    }
+    return (
+      <p className="text-zinc-500 text-sm text-center py-4">
+        No se encontraron ejercicios
+      </p>
+    );
+  }, [filteredExercises, handleSelectExercise, selectedExercise]);
 
   return (
     <Dialog open={isOpen} onOpenChange={setOpen}>
@@ -81,28 +120,12 @@ export default function AddExercise({
               type="text"
               placeholder="Buscar ejercicio..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={handleSearchChange}
               className="pl-10 bg-zinc-800 border-zinc-700 text-zinc-100 placeholder-zinc-400"
             />
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-zinc-400" />
           </div>
-          {filteredExercises.length > 0 ? (
-            <div className="max-h-[300px] overflow-y-auto">
-              {filteredExercises.map((exercise, index) => (
-                <ExerciseModalItem
-                  key={exercise.id}
-                  exercise={exercise}
-                  index={index}
-                  onClick={() => setSelectedExercise(exercise)}
-                  isSelected={selectedExercise?.id === exercise.id}
-                />
-              ))}
-            </div>
-          ) : (
-            <p className="text-zinc-500 text-sm text-center py-4">
-              No se encontraron ejercicios
-            </p>
-          )}
+          {renderedExercises}
         </div>
 
         <DialogFooter>

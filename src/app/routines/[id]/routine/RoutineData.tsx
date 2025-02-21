@@ -1,20 +1,40 @@
 "use client";
 
 import { BiPlus } from "react-icons/bi";
-import { Exercice, RoundData, RoundExercise, RoutineAllData } from "@/types";
+import { Exercice, RoundData, RoundExercise, Routine, RoutineAllData } from "@/types";
 import { useState } from "react";
 import RoutineInformationComponent from "./RoutineInformationComponent";
 import { Button } from "@/components/ui/Button";
 import { RoundService } from "@/app/services/RoundService";
 import Rounds from "../Rounds";
+import PublicRoutine from "./PublicRoutine";
+import { RoutineService } from "@/app/services/routineService";
 
-export default function RoutineData({ routine, roundData, exercises }: RoutineAllData) {
+export default function RoutineData({
+  routine,
+  roundData,
+  exercises,
+}: RoutineAllData) {
   const [rounds, setRounds] = useState<RoundData[]>(roundData || []);
+  const [routineData, setRoutine] = useState<Routine>(routine);
+  const [isPublic, setIsPublic] = useState(routineData.isPublic);
+
+  const handleTogglePublic = async () => {
+    try {
+      await RoutineService.updateRoutine(routineData.id, {
+        isPublic: !isPublic,
+      });
+      setIsPublic((prev) => !prev);
+      setRoutine((prev) => ({ ...prev, isPublic: !prev.isPublic }));
+    } catch (error) {
+      console.error("Error updating routineData:", error);
+    }
+  };
 
   const createRound = async () => {
     try {
       const response = await RoundService.createRound({
-        routineId: routine.id,
+        routineId: routineData.id,
         roundPosition: rounds.length + 1,
       });
       setRounds((prevRounds) => [
@@ -28,13 +48,17 @@ export default function RoutineData({ routine, roundData, exercises }: RoutineAl
 
   const deleteRound = async (id: number) => {
     try {
-      const updatedRounds = await RoundService.DeleteRound(id, routine.id);
+      const updatedRounds = await RoundService.DeleteRound(id, routineData.id);
       setRounds(() =>
         updatedRounds.map((round) => {
-          const roundDataFound = roundData?.find((rd) => rd.round.id === round.id);
+          const roundDataFound = roundData?.find(
+            (rd) => rd.round.id === round.id
+          );
           return {
             round,
-            roundExerciseData: roundDataFound ? roundDataFound.roundExerciseData : [],
+            roundExerciseData: roundDataFound
+              ? roundDataFound.roundExerciseData
+              : [],
           };
         })
       );
@@ -43,7 +67,10 @@ export default function RoutineData({ routine, roundData, exercises }: RoutineAl
     }
   };
 
-  const addRoundExercise = (roundExercise: RoundExercise, exercise: Exercice) => {
+  const addRoundExercise = (
+    roundExercise: RoundExercise,
+    exercise: Exercice
+  ) => {
     setRounds((prevRounds) =>
       prevRounds.map((round) =>
         round.round.id === roundExercise.roundId
@@ -70,7 +97,10 @@ export default function RoutineData({ routine, roundData, exercises }: RoutineAl
     );
   };
 
-  const updateExerciseRoundRepetitions = (roundExerciseId: number, reps: number) => {
+  const updateExerciseRoundRepetitions = (
+    roundExerciseId: number,
+    reps: number
+  ) => {
     setRounds((prevRounds) =>
       prevRounds.map((round) => ({
         ...round,
@@ -78,7 +108,10 @@ export default function RoutineData({ routine, roundData, exercises }: RoutineAl
           red.roundExercise.id === roundExerciseId
             ? {
                 ...red,
-                roundExercise: { ...red.roundExercise, repetitions: reps },
+                roundExercise: {
+                  ...red.roundExercise,
+                  repetitions: reps.toString(),
+                },
               }
             : red
         ),
@@ -89,10 +122,15 @@ export default function RoutineData({ routine, roundData, exercises }: RoutineAl
   return (
     <div className="overflow-hidden p-2">
       <RoutineInformationComponent
-        id={routine.id}
-        name={routine.name}
-        description={routine.description}
+        id={routineData.id}
+        name={routineData.name}
+        description={routineData.description}
       />
+
+      <PublicRoutine 
+        isPublic={isPublic}
+        handleTogglePublic={handleTogglePublic}
+       />
 
       <Rounds
         rounds={rounds}

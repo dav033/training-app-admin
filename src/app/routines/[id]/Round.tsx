@@ -1,7 +1,7 @@
 "use client";
 
 import { roundItemProps, RoundExercise, RoundExerciseData } from "@/types";
-import { useState, useEffect, SyntheticEvent } from "react";
+import { useState, useEffect, SyntheticEvent, useCallback } from "react";
 import RoundHeader from "./RoundHeader";
 import ExerciseRound from "./ExerciseRound";
 import { DndContext } from "@dnd-kit/core";
@@ -20,19 +20,23 @@ export default function Round({
 }: roundItemProps) {
   const [isOpen, setOpen] = useState(false);
   const [isOpenCreate, setOpenCreate] = useState(false);
-
-  // Estado local para los ejercicios de la ronda
+  const [mounted, setMounted] = useState(false);
   const [exerciseRounds, setExerciseRounds] = useState<RoundExerciseData[]>(
     roundData.roundExerciseData
   );
 
-  // Actualizamos el estado local cuando cambie la prop
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   useEffect(() => {
     setExerciseRounds(roundData.roundExerciseData);
   }, [roundData.roundExerciseData]);
 
-  // Hook genérico para DnD en exerciseRounds
-  const { sensors, sortedItems, handleDragEnd } = useDndItems<RoundExerciseData, RoundExercise>({
+  const { sensors, sortedItems, handleDragEnd } = useDndItems<
+    RoundExerciseData,
+    RoundExercise
+  >({
     items: exerciseRounds,
     setItems: setExerciseRounds,
     updateItems: async (items: RoundExercise[]) => {
@@ -46,11 +50,11 @@ export default function Round({
     getUpdateValue: (data: RoundExerciseData) => data.roundExercise,
   });
 
-  const onCloseCreate = () => setOpenCreate(false);
-  const onClose = () => setOpen(false);
+  const onCloseCreate = useCallback(() => setOpenCreate(false), []);
+  const onClose = useCallback(() => setOpen(false), []);
+  const stopPropagation = useCallback((e: SyntheticEvent) => e.stopPropagation(), []);
 
-  // Función para detener la propagación de eventos en el DnD interno
-  const stopPropagation = (e: SyntheticEvent) => e.stopPropagation();
+  const hasExercises = exerciseRounds.length > 0;
 
   return (
     <div
@@ -77,22 +81,23 @@ export default function Round({
           onMouseDown={stopPropagation}
           onDragStart={stopPropagation}
         >
-          {exerciseRounds.length > 0 ? (
-            <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
-              <SortableContext
-                items={sortedItems.map((item) => item.roundExercise.id)}
-                strategy={verticalListSortingStrategy}
-              >
-                {sortedItems.map((roundExerciseData) => (
-                  <ExerciseRound
-                    key={roundExerciseData.roundExercise.id}
-                    roundExerciseData={roundExerciseData}
-                    removeRoundExercise={removeRoundExercise}
-                    updateExerciseRoundRepetitions={updateExerciseRoundRepetitions}
-                  />
-                ))}
-              </SortableContext>
-            </DndContext>
+          {hasExercises ? (
+            mounted && (
+              <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
+                <SortableContext
+                  items={sortedItems.map((item) => item.roundExercise.id)}
+                  strategy={verticalListSortingStrategy}
+                >
+                  {sortedItems.map((roundExerciseData) => (
+                    <ExerciseRound
+                      key={roundExerciseData.roundExercise.id}
+                      roundExerciseData={roundExerciseData}
+                      removeRoundExercise={removeRoundExercise}
+                    />
+                  ))}
+                </SortableContext>
+              </DndContext>
+            )
           ) : (
             <p className="text-zinc-500 text-sm text-center py-4">
               No hay ejercicios en esta ronda. Añade algunos para comenzar.

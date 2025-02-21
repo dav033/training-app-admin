@@ -1,12 +1,11 @@
+import { memo } from "react";
 import { RoutineInformationProps } from "@/types";
 import { MdOutlineEdit } from "react-icons/md";
 
-export default function RoutineInformation(props: RoutineInformationProps) {
-  const { name, description, handleIsEditing } = props;
+function RoutineInformation({ name, description, handleIsEditing }: RoutineInformationProps) {
   return (
-    <div className="">
+    <div className ="">
       <div className="flex flex-row items-center align-middle mb-6">
-        {" "}
         <h1 className="text-5xl">{name}</h1>
         <button
           className="bg-gray-800 p-2 rounded ml-[50%]"
@@ -22,3 +21,5 @@ export default function RoutineInformation(props: RoutineInformationProps) {
     </div>
   );
 }
+
+export default memo(RoutineInformation);

@@ -1,5 +1,10 @@
 import React, { Dispatch, JSX, SetStateAction } from "react";
 
+export enum roundExercisType {
+  REPS = "REPS",
+  TIME = "TIME",
+}
+
 export type BaseEntity = {
   id: number;
 };
@@ -17,6 +22,7 @@ export interface Routine extends DataItem {
   trainingId?: number;
   price: number;
   localDateTime: string;
+  isPublic: boolean;
 }
 
 export interface Round extends BaseEntity {
@@ -29,7 +35,9 @@ export interface Round extends BaseEntity {
 export interface RoundExercise extends BaseEntity {
   roundId: number;
   exerciseId: number;
-  repetitions?: number;
+  repetitions: string;
+  roundExerciseType: roundExercisType;
+  time: number;
   exercisePosition: number;
 }
 
@@ -89,6 +97,8 @@ export interface CreateContentDialogProps {
   title: string;
   onCreate: (newItem: CreateDataItem) => Promise<DataItem>;
   children?: JSX.Element;
+  onUpdate?: (roundExercise: RoundExercise, exercise: Exercice) => void;
+  round?: RoundData;
 }
 
 export interface RoutineInformationProps {
@@ -172,6 +182,14 @@ export interface CreateRound {
   roundPosition: number;
 }
 
+export interface UpdateRoutine {
+  name?: string;
+  description?: string;
+  price?: number;
+  localDateTime?: string;
+  isPublic?: boolean;
+}
+
 export interface CreateRoundExercise {
   roundId: number;
   exerciseId: number;
@@ -194,4 +212,20 @@ export interface UseDndItemsParams<T, U> {
   getPosition: (item: T) => number;
   setPosition: (item: T, newPosition: number) => void;
   getUpdateValue: (item: T) => U;
+}
+
+export interface ExerciseModalItemProps {
+  exercise: Exercice;
+  index: number;
+  onClick: () => void;
+  isSelected: boolean;
+}
+
+export interface EditRepetitionsTimeProps {
+  repetitions: string;
+  time: number;
+  type: roundExercisType;
+  onTimeChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onRepsChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onUpdate: (value: roundExercisType) => void;
 }

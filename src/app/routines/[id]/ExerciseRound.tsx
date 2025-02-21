@@ -1,85 +1,78 @@
-import { Exercice, RoundExerciseData } from "@/types";
-import { useRef, useState } from "react";
+import { RoundExerciseData, roundExercisType } from "@/types";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import image from "../../../../public/ejercicios-basicos-de-gimnasio.webp";
-import { Input } from "@/components/ui/input/Input";
 import { Button } from "@/components/ui/Button";
-import { Check, Edit2, X } from "lucide-react";
+import { X } from "lucide-react";
 import { RoundExerciseService } from "@/app/services/roundExerciseService";
 import { CSS } from "@dnd-kit/utilities";
 import { useSortable } from "@dnd-kit/sortable";
+import EditRepetitionsTime from "./EditRepetitionsTime";
 
 interface ExerciseRoundProps {
   roundExerciseData: RoundExerciseData;
   removeRoundExercise: (roundExerciseId: number) => void;
-  updateExerciseRoundRepetitions: (
-    roundExerciseId: number,
-    reps: number
-  ) => void;
 }
 
-export default function ExerciseRound(props: ExerciseRoundProps) {
-  const id = props.roundExerciseData.roundExercise.id;
-  const nodeRef = useRef<HTMLDivElement | null>(null);
-  const setRefs = (element: HTMLDivElement | null) => {
-    nodeRef.current = element;
-    setNodeRef(element);
-  };
+export default function ExerciseRound({
+  roundExerciseData,
+  removeRoundExercise,
+}: ExerciseRoundProps) {
   const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id });
-  const { roundExerciseData, updateExerciseRoundRepetitions } = props;
+    roundExercise: { id, repetitions, roundExerciseType, time },
+    exercise: { name },
+  } = roundExerciseData;
 
-  const { repetitions } = roundExerciseData.roundExercise;
-  const name = roundExerciseData.exercise.name;
+  const { attributes, listeners, setNodeRef, transform, transition } =
+    useSortable({ id });
 
-  const [isEditing, setIsEditing] = useState(false);
-  const [editedReps, setEditedReps] = useState(repetitions?.toString() || "");
+  const [currentType, setCurrentType] = useState<roundExercisType>(roundExerciseType);
+  const [currentReps, setCurrentReps] = useState<string>(repetitions);
+  const [currentTime, setCurrentTime] = useState<number>(time);
 
-  const deleteRoundExercise = async () => {
-    await RoundExerciseService.deleteRoundExercise(
-      roundExerciseData.roundExercise.id
-    );
+  const onUpdate = useCallback((value: roundExercisType) => {
+    setCurrentType(value);
+  }, []);
 
-    props.removeRoundExercise(roundExerciseData.roundExercise.id);
-  };
+  const onRepsChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setCurrentReps(e.target.value);
+  }, []);
 
-  const handleSave = async () => {
-    const updatedReps = Number.parseInt(editedReps);
-    if (!isNaN(updatedReps) && updatedReps > 0) {
-      await RoundExerciseService.updateRoundExercise({
-        ...roundExerciseData.roundExercise,
-        repetitions: updatedReps,
-      });
+  const onTimeChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setCurrentTime(Number(e.target.value));
+  }, []);
 
-      updateExerciseRoundRepetitions(
-        roundExerciseData.roundExercise.id,
-        updatedReps
-      );
+  const updateRoundExercise = useCallback(async () => {
+    await RoundExerciseService.updateRoundExercise({
+      ...roundExerciseData.roundExercise,
+      repetitions: currentReps,
+      time: currentTime,
+      roundExerciseType: currentType,
+    });
+  }, [roundExerciseData.roundExercise, currentReps, currentTime, currentType]);
 
-      setIsEditing(false);
-    }
-  };
+  useEffect(() => {
+    const timeout = setTimeout(updateRoundExercise, 500);
+    return () => clearTimeout(timeout);
+  }, [updateRoundExercise]);
 
-  const style = {
-    transform: CSS.Translate.toString(transform),
-    transition,
-  };
+  const style = useMemo(
+    () => ({
+      transform: CSS.Translate.toString(transform),
+      transition,
+    }),
+    [transform, transition]
+  );
 
-  const handleEdit = () => {
-    setIsEditing(true);
-    setEditedReps(repetitions?.toString() || "");
-  };
+  const deleteRoundExercise = useCallback(async () => {
+    await RoundExerciseService.deleteRoundExercise(id);
+    removeRoundExercise(id);
+  }, [id, removeRoundExercise]);
 
   return (
     <div
-      className="bg-zinc-800 border-zinc-700 hover:bg-zinc-750 transition-colors mb-2 rounded "
-      ref={setRefs}
+      className="bg-zinc-800 border-zinc-700 hover:bg-zinc-750 transition-colors mb-2 rounded"
+      ref={setNodeRef}
       style={style}
       {...attributes}
       {...listeners}
@@ -90,41 +83,14 @@ export default function ExerciseRound(props: ExerciseRoundProps) {
         </div>
         <div className="flex-grow">
           <h3 className="text-sm font-medium text-zinc-100">{name}</h3>
-          {isEditing ? (
-            <div className="flex items-center mt-1 w-24 bg-blue-">
-              <Input
-                type="number"
-                value={editedReps}
-                onChange={(e) => setEditedReps(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    handleSave();
-                  }
-                }}
-                className="w-16 h-7 text-xs bg-zinc-700 border-zinc-600 mr-2"
-                placeholder="Reps"
-              />
-              <Button
-                size="sm"
-                className="h-7 px-1 bg-red-"
-                onClick={handleSave}
-              >
-                <Check className="h-3 w-3" />
-              </Button>
-            </div>
-          ) : (
-            <p className="text-xs text-zinc-400 flex items-center">
-              {repetitions} reps
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-6 w-6 p-0 ml-1 text-zinc-400 hover:text-zinc-300"
-                onClick={handleEdit}
-              >
-                <Edit2 className="h-3 w-3" />
-              </Button>
-            </p>
-          )}
+          <EditRepetitionsTime
+            repetitions={currentReps}
+            time={currentTime}
+            type={currentType}
+            onTimeChange={onTimeChange}
+            onRepsChange={onRepsChange}
+            onUpdate={onUpdate}
+          />
         </div>
         <Button
           variant="ghost"

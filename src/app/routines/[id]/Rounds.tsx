@@ -25,7 +25,7 @@ export default function Rounds({
     setPosition: (roundData, newPos) => {
       roundData.round.roundPosition = newPos;
     },
-    getUpdateValue: (roundData) => roundData.round, // Mapea RoundData a Round
+    getUpdateValue: (roundData) => roundData.round, 
   });
 
   return (

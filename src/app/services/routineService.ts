@@ -1,5 +1,5 @@
 import apiClient from "@/lib/apiClient";
-import { CreateItem, Exercice, Routine, RoutineAllData } from "@/types";
+import { CreateItem, Exercice, Routine, RoutineAllData, UpdateRoutine } from "@/types";
 
 export const RoutineService = {
   async getAll(): Promise<Routine[]> {
@@ -17,10 +17,12 @@ export const RoutineService = {
   async getAllRoutineData(id: number): Promise<RoutineAllData> {
     const response = await apiClient.get(`/admin/routine/${id}`);
 
+    console.log(response.data);
+
     return response.data;
   },
 
-  async updateRoutine(id: number, routine: CreateItem): Promise<Routine> {
+  async updateRoutine(id: number, routine: UpdateRoutine): Promise<Routine> {
     const response = await apiClient.put(`/admin/routine/${id}`, routine);
 
     return response.data;

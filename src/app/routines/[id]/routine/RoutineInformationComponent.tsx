@@ -1,29 +1,32 @@
-import { Routine, RoutineComponentProps } from "@/types";
-import { useState } from "react";
+import { RoutineComponentProps } from "@/types";
+import { useState, useCallback } from "react";
 import RoutineInformation from "./RoutineInformation";
 import RoutineInformationEdit from "./RoutineInformationEdit";
 
-export default function RoutineInformationComponent(
-  props: RoutineComponentProps
-) {
-  const { name, description, id } = props;
+export default function RoutineInformationComponent({
+  name,
+  description,
+  id,
+}: RoutineComponentProps) {
   const [isEditing, setIsEditing] = useState(false);
-
-  const handleIsEditing = () => {
-    setIsEditing(!isEditing);
-  };
-
   const [routineName, setRoutineName] = useState(name);
   const [routineDescription, setRoutineDescription] = useState(description);
 
-  const handleInformationChange = (name: string, description: string) => {
-    setRoutineName(name);
-    setRoutineDescription(description);
-  };
+  const toggleEditing = useCallback(() => {
+    setIsEditing((prev) => !prev);
+  }, []);
+
+  const handleInformationChange = useCallback(
+    (newName: string, newDescription: string) => {
+      setRoutineName(newName);
+      setRoutineDescription(newDescription);
+    },
+    []
+  );
 
   return isEditing ? (
     <RoutineInformationEdit
-      handleIsEditing={handleIsEditing}
+      handleIsEditing={toggleEditing}
       name={routineName}
       description={routineDescription}
       id={id}
@@ -33,7 +36,7 @@ export default function RoutineInformationComponent(
     <RoutineInformation
       name={routineName}
       description={routineDescription}
-      handleIsEditing={handleIsEditing}
+      handleIsEditing={toggleEditing}
     />
   );
 }

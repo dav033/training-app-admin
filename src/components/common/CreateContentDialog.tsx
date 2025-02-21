@@ -2,7 +2,7 @@
 "use client";
 
 import { useState } from "react";
-import { CreateContentDialogProps } from "@/types";
+import { CreateContentDialogProps, RoundExercise } from "@/types";
 
 import { Dialog } from "@/components/ui/dialog/Dialog";
 import { DialogHeader } from "@/components/ui/dialog/DialogHeader";
@@ -13,9 +13,19 @@ import { DialogTrigger } from "@/components/ui/dialog/DialogTrigger";
 import { FiPlus } from "react-icons/fi";
 import { DialogContent } from "@/components/ui/dialog/DialogContent";
 import { DialogTitle } from "@/components/ui/dialog/DialogTitle";
+import { RoundExerciseService } from "@/app/services/roundExerciseService";
 
 export default function CreateContentDialog(props: CreateContentDialogProps) {
-  const { isOpen, onClose, title, onCreate, setOpen, children } = props;
+  const {
+    isOpen,
+    onClose,
+    title,
+    onCreate,
+    setOpen,
+    children,
+    onUpdate,
+    round,
+  } = props;
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -25,6 +35,16 @@ export default function CreateContentDialog(props: CreateContentDialogProps) {
     try {
       // Se envía la request de creación con name y description.
       const createdItem = await onCreate({ name, description });
+
+      if (onUpdate && round) {
+        const roundExercise = await RoundExerciseService.createRoundExercise({
+          exerciseId: createdItem.id,
+          roundId: round.round.id,
+          exercisePosition: round.roundExerciseData.length + 1,
+        });
+
+        onUpdate(roundExercise, createdItem);
+      }
 
       setName(""); // Limpiar el campo name
       setDescription(""); // Limpiar el campo description

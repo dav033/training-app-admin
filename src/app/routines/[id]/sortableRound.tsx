@@ -1,8 +1,9 @@
 "use client";
 
-import { Exercice, RoundData, RoundExercise, SortableItemProps } from "@/types";
+import { useMemo } from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { SortableItemProps } from "@/types";
 import Round from "./Round";
 
 export default function SortableRound({
@@ -23,11 +24,14 @@ export default function SortableRound({
     isDragging,
   } = useSortable({ id });
 
-  const style = {
-    transform: CSS.Translate.toString(transform),
-    transition,
-    opacity: isDragging ? 0.5 : 1,
-  };
+  const style = useMemo(
+    () => ({
+      transform: CSS.Translate.toString(transform),
+      transition,
+      opacity: isDragging ? 0.5 : 1,
+    }),
+    [transform, transition, isDragging]
+  );
 
   return (
     <div
