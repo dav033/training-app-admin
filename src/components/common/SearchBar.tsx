@@ -7,7 +7,8 @@ import { SearchBarProps } from "@/types";
 import CreateContentDialog from "./CreateContentDialog";
 
 export default function SearchBar(props: SearchBarProps) {
-  const { data, placeholder, searchFuncion, createFunction, modalTitle } = props;
+  const { placeholder, searchFuncion, createFunction, modalTitle, type } =
+    props;
 
   const [open, setOpen] = useState(false);
 
@@ -21,6 +22,7 @@ export default function SearchBar(props: SearchBarProps) {
         onClose={() => setOpen(false)}
         onCreate={createFunction}
         title={modalTitle}
+        type={type}
       />
     </div>
   );

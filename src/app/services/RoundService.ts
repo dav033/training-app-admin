@@ -17,7 +17,10 @@ export const RoundService = {
   },
 
   async updateRoundList(rounds: Round[]) {
+    console.log(rounds);
     const response = await apiClient.put("/admin/round/list", { rounds });
+
+    console.log(response.data);
 
     return response.data;
   },

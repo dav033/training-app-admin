@@ -1,17 +1,26 @@
 "use server";
 import { createClient } from "@/lib/supabase/server";
-export async function login() {
+import { redirect } from "next/navigation";
+
+export async function loginWithGoogle() {
   const supabase = await createClient();
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google",
     options: {
-      redirectTo: "https://cnnevzbpvjeogwojchej.supabase.co/auth/v1/callback",
+      // Asegúrate de que esta URL esté permitida en la configuración de redirecciones de Supabase
+      redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/confirmation`,
     },
   });
 
+  console.log("data:", data);
   if (error) {
-  } else {
-    // Nota: En muchos casos, al usar OAuth se redirige al usuario y la sesión se recupera después.
+    console.error("Error al iniciar sesión:", error);
+    throw new Error(error.message);
+  }
+
+  // Si Supabase retorna una URL, redirige manualmente
+  if (data?.url) {
+    redirect(data.url);
   }
 }
 

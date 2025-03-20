@@ -13,9 +13,9 @@ export default function DashboardLayout({
 }) {
   return (
     <html lang="en" className={lexend.className}>
-      <head>
+      {/* <head>
         <script src="https://unpkg.com/react-scan/dist/auto.global.js"></script>
-      </head>
+      </head> */}
       <body className="relative flex flex-row h-screen ">
         <Drawer />
         <main className={`w-full ml-80 p-4 ${lexend.className}`}>{children}</main>

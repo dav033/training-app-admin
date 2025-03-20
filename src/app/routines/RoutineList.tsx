@@ -1,7 +1,7 @@
 "use client";
 
 import DataList from "@/components/common/DataList";
-import { Routine } from "@/types";
+import { dataItemType, Routine } from "@/types";
 import { RoutineService } from "../services/routineService";
 import EntityItem from "@/components/common/EntityItem";
 
@@ -18,6 +18,7 @@ export default function RoutineList({ routines }: RoutineProps) {
         renderItem={(routine) => <EntityItem {...routine} />}
         placeholder="Search Routine"
         modalTitle="Create Routine"
+        type={dataItemType.ROUTINE}
       />
     </div>
   );

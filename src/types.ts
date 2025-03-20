@@ -1,5 +1,10 @@
 import React, { Dispatch, JSX, SetStateAction } from "react";
 
+export enum dataItemType {
+  EXERCISE = "EXERCISE",
+  ROUTINE = "ROUTINE",
+}
+
 export enum roundExercisType {
   REPS = "REPS",
   TIME = "TIME",
@@ -12,6 +17,8 @@ export type BaseEntity = {
 export type DataItem = BaseEntity & {
   name: string;
   description: string;
+  videoUrl?: string;
+  thumbnailUrl?: string;
 };
 
 export type CreateDataItem = Omit<DataItem, "id">;
@@ -80,6 +87,7 @@ export interface DataListProps {
   renderItem: (item: DataItem) => JSX.Element;
   placeholder?: string;
   modalTitle: string;
+  type: dataItemType;
 }
 
 export interface SearchBarProps {
@@ -88,6 +96,7 @@ export interface SearchBarProps {
   searchFuncion: OnChangeFunction;
   createFunction: (newItem: CreateDataItem) => Promise<DataItem>;
   modalTitle: string;
+  type: dataItemType;
 }
 
 export interface CreateContentDialogProps {
@@ -99,6 +108,7 @@ export interface CreateContentDialogProps {
   children?: JSX.Element;
   onUpdate?: (roundExercise: RoundExercise, exercise: Exercice) => void;
   round?: RoundData;
+  type: dataItemType;
 }
 
 export interface RoutineInformationProps {

@@ -12,6 +12,7 @@ export default function DataList({
   renderItem,
   placeholder = "Buscar...",
   modalTitle,
+  type
 }: DataListProps) {
   const { data, filteredData, setBusqueda, createItem } = useDataList(
     initialData,
@@ -28,6 +29,7 @@ export default function DataList({
         }
         createFunction={createItem}
         modalTitle={modalTitle}
+        type={type}
       />
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 w-full max-w-6xl mx-auto">
         {filteredData.map((item, index) => (

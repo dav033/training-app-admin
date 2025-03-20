@@ -2,7 +2,7 @@
 
 import { BiPlus } from "react-icons/bi";
 import { Exercice, RoundData, RoundExercise, Routine, RoutineAllData } from "@/types";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import RoutineInformationComponent from "./RoutineInformationComponent";
 import { Button } from "@/components/ui/Button";
 import { RoundService } from "@/app/services/RoundService";
@@ -18,61 +18,46 @@ export default function RoutineData({
   const [rounds, setRounds] = useState<RoundData[]>(roundData || []);
   const [routineData, setRoutine] = useState<Routine>(routine);
   const [isPublic, setIsPublic] = useState(routineData.isPublic);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
-  const handleTogglePublic = async () => {
-    try {
-      await RoutineService.updateRoutine(routineData.id, {
-        isPublic: !isPublic,
-      });
-      setIsPublic((prev) => !prev);
-      setRoutine((prev) => ({ ...prev, isPublic: !prev.isPublic }));
-    } catch (error) {
-      console.error("Error updating routineData:", error);
-    }
-  };
+  // Validación de integridad: rutina completa si todas las rondas tienen al menos un ejercicio
+  const isRoutineValid = useMemo(() => {
+    return rounds.every(round => round.roundExerciseData.length > 0);
+  }, [rounds]);
 
-  const createRound = async () => {
-    try {
-      const response = await RoundService.createRound({
-        routineId: routineData.id,
+  // Si la rutina no está publicada, se permite guardar incluso si está incompleta.
+  // Si está publicada, se requiere que esté completa para guardar cambios.
+  const canSave = useMemo(() => {
+    return hasUnsavedChanges && (!routineData.isPublic || isRoutineValid);
+  }, [hasUnsavedChanges, routineData.isPublic, isRoutineValid]);
+
+  // Actualizar de forma local sin llamar a la API inmediatamente
+  const createRound = () => {
+    const tempId = Date.now();
+    const newRound = {
+      round: {
+        id: tempId,
         roundPosition: rounds.length + 1,
-      });
-      setRounds((prevRounds) => [
-        ...prevRounds,
-        { round: response, roundExerciseData: [] },
-      ]);
-    } catch (error) {
-      console.error("Error creating round:", error);
-    }
+        routineId: routineData.id,
+        // Otros campos necesarios…
+      },
+      roundExerciseData: [],
+    };
+    setRounds(prevRounds => [...prevRounds, newRound]);
+    setHasUnsavedChanges(true);
   };
 
-  const deleteRound = async (id: number) => {
-    try {
-      const updatedRounds = await RoundService.DeleteRound(id, routineData.id);
-      setRounds(() =>
-        updatedRounds.map((round) => {
-          const roundDataFound = roundData?.find(
-            (rd) => rd.round.id === round.id
-          );
-          return {
-            round,
-            roundExerciseData: roundDataFound
-              ? roundDataFound.roundExerciseData
-              : [],
-          };
-        })
-      );
-    } catch (error) {
-      console.error("Error deleting round:", error);
-    }
+  const deleteRound = (id: number) => {
+    setRounds(prevRounds => prevRounds.filter(r => r.round.id !== id));
+    setHasUnsavedChanges(true);
   };
 
   const addRoundExercise = (
     roundExercise: RoundExercise,
     exercise: Exercice
   ) => {
-    setRounds((prevRounds) =>
-      prevRounds.map((round) =>
+    setRounds(prevRounds =>
+      prevRounds.map(round =>
         round.round.id === roundExercise.roundId
           ? {
               ...round,
@@ -84,27 +69,29 @@ export default function RoutineData({
           : round
       )
     );
+    setHasUnsavedChanges(true);
   };
 
   const removeRoundExercise = (roundExerciseId: number) => {
-    setRounds((prevRounds) =>
-      prevRounds.map((round) => ({
+    setRounds(prevRounds =>
+      prevRounds.map(round => ({
         ...round,
         roundExerciseData: round.roundExerciseData.filter(
-          (red) => red.roundExercise.id !== roundExerciseId
+          red => red.roundExercise.id !== roundExerciseId
         ),
       }))
     );
+    setHasUnsavedChanges(true);
   };
 
   const updateExerciseRoundRepetitions = (
     roundExerciseId: number,
     reps: number
   ) => {
-    setRounds((prevRounds) =>
-      prevRounds.map((round) => ({
+    setRounds(prevRounds =>
+      prevRounds.map(round => ({
         ...round,
-        roundExerciseData: round.roundExerciseData.map((red) =>
+        roundExerciseData: round.roundExerciseData.map(red =>
           red.roundExercise.id === roundExerciseId
             ? {
                 ...red,
@@ -117,6 +104,44 @@ export default function RoutineData({
         ),
       }))
     );
+    setHasUnsavedChanges(true);
+  };
+
+  // Guardar cambios pendientes: si la rutina está publicada se exige estar completa.
+  const handleSave = async () => {
+    if (routineData.isPublic && !isRoutineValid) {
+      alert("No se puede guardar: la rutina publicada debe estar completa.");
+      return;
+    }
+    try {
+      await RoutineService.updateRoutine(routineData.id, {
+        name: routineData.name,
+        description: routineData.description,
+      });
+      await RoundService.updateRoundList(rounds.map(r => r.round));
+      alert("Cambios guardados exitosamente.");
+      setHasUnsavedChanges(false);
+    } catch (error) {
+      console.error("Error al guardar los cambios:", error);
+      alert("Hubo un error al guardar. Intenta nuevamente.");
+    }
+  };
+
+  // Publicar/despublicar solo si la rutina está completa.
+  const handleTogglePublic = async () => {
+    if (!isRoutineValid) {
+      alert("No se puede publicar: la rutina tiene cambios incompletos.");
+      return;
+    }
+    try {
+      await RoutineService.updateRoutine(routineData.id, {
+        isPublic: !isPublic,
+      });
+      setIsPublic(prev => !prev);
+      setRoutine(prev => ({ ...prev, isPublic: !prev.isPublic }));
+    } catch (error) {
+      console.error("Error actualizando la rutina:", error);
+    }
   };
 
   return (
@@ -130,7 +155,8 @@ export default function RoutineData({
       <PublicRoutine 
         isPublic={isPublic}
         handleTogglePublic={handleTogglePublic}
-       />
+        disabled={!isRoutineValid}  // Se deshabilita el botón de publicar si hay datos incompletos
+      />
 
       <Rounds
         rounds={rounds}
@@ -142,12 +168,21 @@ export default function RoutineData({
         updateExerciseRoundRepetitions={updateExerciseRoundRepetitions}
       />
 
-      <Button
-        className="border-2 border-red-300 text-red-300"
-        onClick={createRound}
-      >
-        <span>Agregar Ronda</span> <BiPlus />
-      </Button>
+      <div className="flex gap-2 mt-4">
+        <Button
+          className="border-2 border-red-300 text-red-300"
+          onClick={createRound}
+        >
+          <span>Agregar Ronda</span> <BiPlus />
+        </Button>
+        <Button
+          onClick={handleSave}
+          disabled={!canSave}
+          className="bg-blue-500 text-white"
+        >
+          Guardar Cambios
+        </Button>
+      </div>
     </div>
   );
 }

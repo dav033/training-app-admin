@@ -3,6 +3,7 @@ import { MdOutlineEdit } from "react-icons/md";
 interface PublicRoutineProps {
   isPublic: boolean;
   handleTogglePublic: () => void;
+  disabled?: boolean;
 }
 
 export default function PublicRoutine(props: PublicRoutineProps) {
@@ -17,6 +18,7 @@ export default function PublicRoutine(props: PublicRoutineProps) {
         className={`${
           isPublic ? "bg-red-500" : "bg-green-500"
         } text-white p-2 rounded`}
+         disabled={props.disabled}
       >
         {isPublic ? "Despublicar" : "Publicar"}
       </button>

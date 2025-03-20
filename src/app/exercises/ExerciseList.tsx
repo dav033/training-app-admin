@@ -1,5 +1,5 @@
 "use client";
-import { Exercice } from "@/types";
+import { dataItemType, Exercice } from "@/types";
 import EntityItem from "@/components/common/EntityItem";
 
 import { ExerciseService } from "../services/exerciseService";
@@ -7,6 +7,7 @@ import DataList from "@/components/common/DataList";
 
 interface ExerciseProps {
   exercises: Exercice[];
+  type: dataItemType;
 }
 
 export default function ExerciseList({ exercises }: ExerciseProps) {
@@ -18,6 +19,7 @@ export default function ExerciseList({ exercises }: ExerciseProps) {
         renderItem={(exercise) => <EntityItem {...exercise} />}
         placeholder="Search Exercise"
         modalTitle="Create Exercise"
+        type={dataItemType.EXERCISE}
       />
     </div>
   );

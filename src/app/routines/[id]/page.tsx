@@ -7,7 +7,9 @@ interface Params {
 }
 
 export default async function Routine({ params }: { params: Params }) {
-  const { id } = params;
+  const { id } = await params;
+
+  console.log("id", id);
 
   const response = await RoutineService.getAllRoutineData(parseInt(id));
 

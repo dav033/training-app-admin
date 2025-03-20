@@ -4,7 +4,11 @@ import ImagePlaceHoler from "../../../public/ejercicios-basicos-de-gimnasio.webp
 import { usePathname } from "next/navigation";
 import { useRouter } from "next/navigation";
 
-export default function EntityItem({ name, id }: EntityItemProps) {
+export default function EntityItem(props: EntityItemProps) {
+  const { id, name } = props;
+
+  console.log(props)
+
   const router = useRouter();
 
   const pathname = usePathname();
@@ -16,7 +20,7 @@ export default function EntityItem({ name, id }: EntityItemProps) {
     >
       <div className="relative w-full h-48">
         <Image
-          src={ImagePlaceHoler.src}
+          src={props.thumbnailUrl}
           alt={`Imagen del ejercicio: ${name}`}
           className="object-cover"
           fill

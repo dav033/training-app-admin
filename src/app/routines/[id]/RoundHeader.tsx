@@ -5,7 +5,7 @@ import CreateContentDialog from "@/components/common/CreateContentDialog";
 import { Button } from "@/components/ui/Button";
 import { Plus, Trash2 } from "lucide-react";
 import AddExercise from "./AddExercise";
-import { RoundHeaderProps } from "@/types";
+import { dataItemType, RoundHeaderProps } from "@/types";
 import { ExerciseService } from "@/app/services/exerciseService";
 
 function RoundHeader({
@@ -40,6 +40,7 @@ function RoundHeader({
           onCreate={ExerciseService.create}
           round={roundData}
           onUpdate={addRoundExercise}
+          type={dataItemType.EXERCISE}
         >
           <Button
             variant="ghost"

@@ -1,14 +1,11 @@
 "use client";
-
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { login } from "./actions";
+import { loginWithGoogle } from "./actions";
 
 export default function LoginPage() {
   const [session, setSession] = useState<any>(null);
   const supabase = createClient();
-
-  // Función para iniciar sesión con OAuth (Google en este caso)
 
   useEffect(() => {
     // Obtener la sesión actual al montar el componente
@@ -30,7 +27,6 @@ export default function LoginPage() {
     const { data: authListener } = supabase.auth.onAuthStateChange(
       (_event, session) => {
         setSession(session);
-        
       }
     );
 
@@ -43,7 +39,7 @@ export default function LoginPage() {
   return (
     <div>
       <h1>Página de Login</h1>
-      <button onClick={login}>Login con Google</button>
+      <button onClick={() => loginWithGoogle()}>Login con Google</button>
 
       {session ? (
         <div>
