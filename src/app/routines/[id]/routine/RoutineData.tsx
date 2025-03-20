@@ -1,7 +1,12 @@
 "use client";
-
 import { BiPlus } from "react-icons/bi";
-import { Exercice, RoundData, RoundExercise, Routine, RoutineAllData } from "@/types";
+import {
+  Exercice,
+  RoundData,
+  RoundExercise,
+  Routine,
+  RoutineAllData,
+} from "@/types";
 import { useState, useMemo } from "react";
 import RoutineInformationComponent from "./RoutineInformationComponent";
 import { Button } from "@/components/ui/Button";
@@ -20,9 +25,12 @@ export default function RoutineData({
   const [isPublic, setIsPublic] = useState(routineData.isPublic);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
-  // Validación de integridad: rutina completa si todas las rondas tienen al menos un ejercicio
+  // Nuevo estado para llevar registro de rondas eliminadas
+  const [deletedRounds, setDeletedRounds] = useState<number[]>([]);
+
+  // Validación de integridad: la rutina es válida si todas las rondas tienen al menos un ejercicio
   const isRoutineValid = useMemo(() => {
-    return rounds.every(round => round.roundExerciseData.length > 0);
+    return rounds.every((round) => round.roundExerciseData.length > 0);
   }, [rounds]);
 
   // Si la rutina no está publicada, se permite guardar incluso si está incompleta.
@@ -43,12 +51,29 @@ export default function RoutineData({
       },
       roundExerciseData: [],
     };
-    setRounds(prevRounds => [...prevRounds, newRound]);
+    setRounds((prevRounds) => [...prevRounds, newRound]);
     setHasUnsavedChanges(true);
   };
 
+  // Se actualiza la función para registrar el ID de la ronda eliminada
   const deleteRound = (id: number) => {
-    setRounds(prevRounds => prevRounds.filter(r => r.round.id !== id));
+    setDeletedRounds((prev) => [...prev, id]);
+    setRounds((prevRounds) => {
+      // 1. Filtrar la ronda eliminada
+      const newRounds = prevRounds.filter((r) => r.round.id !== id);
+
+      // 2. Recalcular posiciones para cada ronda
+      //    (index + 1) se convierte en roundPosition
+      const reassigned = newRounds.map((roundData, index) => ({
+        ...roundData,
+        round: {
+          ...roundData.round,
+          roundPosition: index + 1,
+        },
+      }));
+
+      return reassigned;
+    });
     setHasUnsavedChanges(true);
   };
 
@@ -56,8 +81,8 @@ export default function RoutineData({
     roundExercise: RoundExercise,
     exercise: Exercice
   ) => {
-    setRounds(prevRounds =>
-      prevRounds.map(round =>
+    setRounds((prevRounds) =>
+      prevRounds.map((round) =>
         round.round.id === roundExercise.roundId
           ? {
               ...round,
@@ -73,11 +98,11 @@ export default function RoutineData({
   };
 
   const removeRoundExercise = (roundExerciseId: number) => {
-    setRounds(prevRounds =>
-      prevRounds.map(round => ({
+    setRounds((prevRounds) =>
+      prevRounds.map((round) => ({
         ...round,
         roundExerciseData: round.roundExerciseData.filter(
-          red => red.roundExercise.id !== roundExerciseId
+          (red) => red.roundExercise.id !== roundExerciseId
         ),
       }))
     );
@@ -88,10 +113,10 @@ export default function RoutineData({
     roundExerciseId: number,
     reps: number
   ) => {
-    setRounds(prevRounds =>
-      prevRounds.map(round => ({
+    setRounds((prevRounds) =>
+      prevRounds.map((round) => ({
         ...round,
-        roundExerciseData: round.roundExerciseData.map(red =>
+        roundExerciseData: round.roundExerciseData.map((red) =>
           red.roundExercise.id === roundExerciseId
             ? {
                 ...red,
@@ -107,7 +132,7 @@ export default function RoutineData({
     setHasUnsavedChanges(true);
   };
 
-  // Guardar cambios pendientes: si la rutina está publicada se exige estar completa.
+  // Guardar cambios pendientes: primero actualiza la rutina, luego elimina las rondas borradas y finalmente actualiza el orden de las rondas restantes.
   const handleSave = async () => {
     if (routineData.isPublic && !isRoutineValid) {
       alert("No se puede guardar: la rutina publicada debe estar completa.");
@@ -118,9 +143,18 @@ export default function RoutineData({
         name: routineData.name,
         description: routineData.description,
       });
-      await RoundService.updateRoundList(rounds.map(r => r.round));
+
+      // Eliminar las rondas borradas en el backend
+      for (const id of deletedRounds) {
+        await RoundService.DeleteRound(id, routineData.id);
+      }
+
+      // Actualizar el listado de rondas restantes
+      await RoundService.updateRoundList(rounds.map((r) => r.round));
+
       alert("Cambios guardados exitosamente.");
       setHasUnsavedChanges(false);
+      setDeletedRounds([]); // Limpiar el registro de eliminaciones
     } catch (error) {
       console.error("Error al guardar los cambios:", error);
       alert("Hubo un error al guardar. Intenta nuevamente.");
@@ -137,8 +171,8 @@ export default function RoutineData({
       await RoutineService.updateRoutine(routineData.id, {
         isPublic: !isPublic,
       });
-      setIsPublic(prev => !prev);
-      setRoutine(prev => ({ ...prev, isPublic: !prev.isPublic }));
+      setIsPublic((prev) => !prev);
+      setRoutine((prev) => ({ ...prev, isPublic: !prev.isPublic }));
     } catch (error) {
       console.error("Error actualizando la rutina:", error);
     }
@@ -152,10 +186,10 @@ export default function RoutineData({
         description={routineData.description}
       />
 
-      <PublicRoutine 
+      <PublicRoutine
         isPublic={isPublic}
         handleTogglePublic={handleTogglePublic}
-        disabled={!isRoutineValid}  // Se deshabilita el botón de publicar si hay datos incompletos
+        disabled={!isRoutineValid} // Se deshabilita el botón de publicar si hay datos incompletos
       />
 
       <Rounds

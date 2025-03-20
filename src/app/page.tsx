@@ -5,10 +5,14 @@ import { loginWithGoogle } from "./actions";
 
 export default function LoginPage() {
   const [session, setSession] = useState<any>(null);
+  const [mounted, setMounted] = useState(false);
   const supabase = createClient();
 
   useEffect(() => {
-    // Obtener la sesión actual al montar el componente
+    // Indicar que el componente se ha montado (solo en el cliente)
+    setMounted(true);
+
+    // Obtener la sesión inicial
     const obtenerSesionInicial = async () => {
       const {
         data: { session },
@@ -20,10 +24,9 @@ export default function LoginPage() {
         setSession(session);
       }
     };
-
     obtenerSesionInicial();
 
-    // Suscribirse a los cambios de autenticación
+    // Suscribirse a cambios de autenticación
     const { data: authListener } = supabase.auth.onAuthStateChange(
       (_event, session) => {
         setSession(session);
@@ -36,11 +39,15 @@ export default function LoginPage() {
     };
   }, [supabase]);
 
+  // Mientras el componente no esté montado, renderizamos un placeholder
+  if (!mounted) {
+    return <div>Cargando...</div>;
+  }
+
   return (
     <div>
       <h1>Página de Login</h1>
       <button onClick={() => loginWithGoogle()}>Login con Google</button>
-
       {session ? (
         <div>
           <h2>Información de la sesión:</h2>

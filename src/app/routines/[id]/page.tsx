@@ -15,7 +15,7 @@ export default async function Routine({ params }: { params: Params }) {
 
   const exercises = await ExerciseService.getAll();
   return (
-    <div className="p-3 px-6 bg-red-">
+    <div className="p-3 px-6 ">
       <RoutineData {...response} exercises={exercises} />
     </div>
   );
