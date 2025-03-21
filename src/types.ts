@@ -21,6 +21,10 @@ export type DataItem = BaseEntity & {
   thumbnailUrl?: string;
 };
 
+export type RoundBunch = Round & {
+  isNew?: boolean; // se usa solo internamente para el estado
+};
+
 export type CreateDataItem = Omit<DataItem, "id">;
 
 export interface Exercice extends DataItem {}
@@ -32,20 +36,49 @@ export interface Routine extends DataItem {
   isPublic: boolean;
 }
 
+// Se utiliza RoundBunch para permitir marcar la ronda como nueva (solo en estado local)
 export interface Round extends BaseEntity {
   routineId: number;
   roundTypeId?: number;
   rest?: number;
   roundPosition: number;
+  // Esta propiedad se usa internamente, pero no se enviará en el payload
+  isNew?: boolean;
 }
 
+/**
+ * RoundExercise representa un ejercicio asignado a una ronda.
+ * Por defecto:
+ * - roundExerciseType: roundExercisType.REPS
+ * - time: 60 (segundos)
+ * - repetitions: "12"
+ */
 export interface RoundExercise extends BaseEntity {
   roundId: number;
   exerciseId: number;
-  repetitions: string;
-  roundExerciseType: roundExercisType;
-  time: number;
+  repetitions: string;           // default "12"
+  roundExerciseType: roundExercisType; // default REPS
+  time: number;                  // default 60
   exercisePosition: number;
+  // La propiedad temp se usa internamente para indicar objetos nuevos; no se envía en el payload
+  temp?: boolean;
+}
+
+// Opcional: función helper para crear un RoundExercise con valores por defecto.
+export function createDefaultRoundExercise(data: Partial<RoundExercise>): RoundExercise {
+  if (data.roundId === undefined || data.exerciseId === undefined || data.exercisePosition === undefined) {
+    throw new Error("roundId, exerciseId y exercisePosition son requeridos");
+  }
+  return {
+    id: data.id ?? 0,
+    roundId: data.roundId,
+    exerciseId: data.exerciseId,
+    repetitions: data.repetitions ?? "12",
+    roundExerciseType: data.roundExerciseType ?? roundExercisType.REPS,
+    time: data.time ?? 60,
+    exercisePosition: data.exercisePosition,
+    temp: data.temp,
+  };
 }
 
 export interface RoundExerciseData {
@@ -54,7 +87,7 @@ export interface RoundExerciseData {
 }
 
 export interface RoundData {
-  round: Round;
+  round: RoundBunch;
   roundExerciseData: RoundExerciseData[];
 }
 
@@ -99,6 +132,7 @@ export interface SearchBarProps {
   type: dataItemType;
 }
 
+// onUpdate se usa para agregar RoundExercise al estado (sin llamadas a API) junto con el item creado.
 export interface CreateContentDialogProps {
   isOpen: boolean;
   setOpen: Dispatch<SetStateAction<boolean>>;
@@ -130,10 +164,7 @@ export interface roundItemProps {
   exercises: Exercice[];
   addRoundExercise: (roundExercise: RoundExercise, exercise: Exercice) => void;
   removeRoundExercise: (roundExerciseId: number) => void;
-  updateExerciseRoundRepetitions: (
-    roundExerciseId: number,
-    repetitions: number
-  ) => void;
+  updateExerciseRoundRepetitions: (roundExerciseId: number, repetitions: number) => void;
 }
 
 export interface RoundsProps {
@@ -143,10 +174,7 @@ export interface RoundsProps {
   exercises: Exercice[];
   addRoundExercise: (roundExercise: RoundExercise, exercise: Exercice) => void;
   removeRoundExercise: (roundExerciseId: number) => void;
-  updateExerciseRoundRepetitions: (
-    roundExerciseId: number,
-    repetitions: number
-  ) => void;
+  updateExerciseRoundRepetitions: (roundExerciseId: number, repetitions: number) => void;
 }
 
 export interface RoundHeaderProps {
@@ -170,10 +198,7 @@ export interface SortableItemProps {
   exercises: Exercice[];
   addRoundExercise: (roundExercise: RoundExercise, exercise: Exercice) => void;
   removeRoundExercise: (roundExerciseId: number) => void;
-  updateExerciseRoundRepetitions: (
-    roundExerciseId: number,
-    reps: number
-  ) => void;
+  updateExerciseRoundRepetitions: (roundExerciseId: number, reps: number) => void;
 }
 
 export interface AddExerciseProps {
@@ -238,4 +263,14 @@ export interface EditRepetitionsTimeProps {
   onTimeChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onRepsChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onUpdate: (value: roundExercisType) => void;
+}
+
+export interface roundItemProps {
+  roundData: RoundData;
+  deleteRound: (id: number) => void;
+  exercises: Exercice[];
+  addRoundExercise: (roundExercise: RoundExercise, exercise: Exercice) => void;
+  removeRoundExercise: (roundExerciseId: number) => void;
+  updateExerciseRoundRepetitions: (roundExerciseId: number, repetitions: number) => void;
+  onPositionsChange?: () => void;
 }

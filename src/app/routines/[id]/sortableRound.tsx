@@ -1,12 +1,12 @@
 "use client";
 
-import { useMemo } from "react";
+import React, { useMemo } from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { SortableItemProps } from "@/types";
 import Round from "./Round";
 
-export default function SortableRound({
+function SortableRound({
   id,
   round,
   deleteRound,
@@ -14,7 +14,8 @@ export default function SortableRound({
   addRoundExercise,
   removeRoundExercise,
   updateExerciseRoundRepetitions,
-}: SortableItemProps) {
+  onPositionsChange,
+}: SortableItemProps & { onPositionsChange?: () => void; }) {
   const {
     attributes,
     listeners,
@@ -48,7 +49,10 @@ export default function SortableRound({
         addRoundExercise={addRoundExercise}
         removeRoundExercise={removeRoundExercise}
         updateExerciseRoundRepetitions={updateExerciseRoundRepetitions}
+        onPositionsChange={onPositionsChange}
       />
     </div>
   );
 }
+
+export default React.memo(SortableRound);

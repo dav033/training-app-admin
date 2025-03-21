@@ -1,3 +1,4 @@
+// src/app/routines/[id]/AddExercise.tsx
 "use client";
 
 import React, { useState, useCallback, useMemo } from "react";
@@ -10,9 +11,13 @@ import { DialogTrigger } from "@/components/ui/dialog/DialogTrigger";
 import { DialogFooter } from "@/components/ui/dialog/DialogFooter";
 import { Input } from "@/components/ui/input/Input";
 import { Dumbbell, Search } from "lucide-react";
-import { AddExerciseProps, Exercice } from "@/types";
+import {
+  AddExerciseProps,
+  Exercice,
+  roundExercisType,
+  RoundExercise,
+} from "@/types";
 import ExerciseModalItem from "./ExerciseModalItem";
-import { RoundExerciseService } from "@/app/services/roundExerciseService";
 import useFilteredExercises from "@/hooks/useFilteredExercises";
 
 export default function AddExercise({
@@ -23,24 +28,39 @@ export default function AddExercise({
   roundData,
   addRoundExercise,
 }: AddExerciseProps) {
-  const { filteredExercises, searchTerm, setSearchTerm } = useFilteredExercises(exercises);
-  const [selectedExercise, setSelectedExercise] = useState<Exercice | null>(null);
+  const { filteredExercises, searchTerm, setSearchTerm } =
+    useFilteredExercises(exercises);
+  const [selectedExercise, setSelectedExercise] = useState<Exercice | null>(
+    null
+  );
 
   // Extraemos propiedades de roundData para mayor claridad
   const { round, roundExerciseData } = roundData;
 
-  const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(e.target.value);
-  }, [setSearchTerm]);
+  const handleSearchChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setSearchTerm(e.target.value);
+    },
+    [setSearchTerm]
+  );
 
-  const addExercise = useCallback(async (exercise: Exercice, index: number) => {
-    const response = await RoundExerciseService.createRoundExercise({
-      roundId: round.id,
-      exerciseId: exercise.id,
-      exercisePosition: index + 1,
-    });
-    addRoundExercise(response, exercise);
-  }, [round.id, addRoundExercise]);
+  // Aquí se crea el objeto temporal sin realizar ninguna llamada a la API.
+  const addExercise = useCallback(
+    (exercise: Exercice, index: number) => {
+      const tempRoundExercise: RoundExercise & { temp?: boolean } = {
+        id: Date.now(), // Identificador temporal
+        roundId: round.id,
+        exerciseId: exercise.id,
+        repetitions: "", // Valor inicial; se puede ajustar según la lógica
+        roundExerciseType: roundExercisType.REPS, // Tipo por defecto
+        time: 0,
+        exercisePosition: index + 1,
+        temp: true, // Marca para identificar que aún no se ha persistido en el backend
+      };
+      addRoundExercise(tempRoundExercise, exercise);
+    },
+    [round.id, addRoundExercise]
+  );
 
   const addSelectedExercise = useCallback(() => {
     if (!selectedExercise) return;

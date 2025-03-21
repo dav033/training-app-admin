@@ -1,12 +1,11 @@
 "use client";
 
 import { roundItemProps, RoundExercise, RoundExerciseData } from "@/types";
-import { useState, useEffect, SyntheticEvent, useCallback } from "react";
+import { useState, useEffect, SyntheticEvent, useCallback, useMemo } from "react";
 import RoundHeader from "./RoundHeader";
 import ExerciseRound from "./ExerciseRound";
 import { DndContext } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
-import { RoundExerciseService } from "@/app/services/roundExerciseService";
 import useDndItems from "@/hooks/useDndRounds";
 
 export default function Round({
@@ -16,6 +15,7 @@ export default function Round({
   addRoundExercise,
   removeRoundExercise,
   updateExerciseRoundRepetitions,
+  onPositionsChange,
   ...rest
 }: roundItemProps) {
   const [isOpen, setOpen] = useState(false);
@@ -25,36 +25,70 @@ export default function Round({
     roundData.roundExerciseData
   );
 
+  // Marcar que el componente se ha montado (solo en cliente)
   useEffect(() => {
     setMounted(true);
   }, []);
 
+  // Actualizar el estado local cuando cambian los datos de la ronda
   useEffect(() => {
     setExerciseRounds(roundData.roundExerciseData);
   }, [roundData.roundExerciseData]);
 
+  // Callback memorizado para actualizar posiciones
+  const updateItemsCallback = useCallback(async (items: RoundExercise[]) => {
+    console.log("Se actualizarían los siguientes items localmente:", items);
+    if (typeof onPositionsChange === "function") {
+      onPositionsChange();
+    }
+  }, [onPositionsChange]);
+
+  // Funciones helper para useDndItems
+  const getId = useCallback(
+    (data: RoundExerciseData) => data.roundExercise.id,
+    []
+  );
+  const getPosition = useCallback(
+    (data: RoundExerciseData) => data.roundExercise.exercisePosition,
+    []
+  );
+  const setPosition = useCallback(
+    (data: RoundExerciseData, newPos: number) => {
+      data.roundExercise.exercisePosition = newPos;
+    },
+    []
+  );
+  const getUpdateValue = useCallback(
+    (data: RoundExerciseData) => data.roundExercise,
+    []
+  );
+
+  // Uso del hook personalizado para drag & drop
   const { sensors, sortedItems, handleDragEnd } = useDndItems<
     RoundExerciseData,
     RoundExercise
   >({
     items: exerciseRounds,
     setItems: setExerciseRounds,
-    updateItems: async (items: RoundExercise[]) => {
-      await RoundExerciseService.updateExerciseRoundList(items);
-    },
-    getId: (data: RoundExerciseData) => data.roundExercise.id,
-    getPosition: (data: RoundExerciseData) => data.roundExercise.exercisePosition,
-    setPosition: (data: RoundExerciseData, newPos: number) => {
-      data.roundExercise.exercisePosition = newPos;
-    },
-    getUpdateValue: (data: RoundExerciseData) => data.roundExercise,
+    updateItems: updateItemsCallback,
+    getId,
+    getPosition,
+    setPosition,
+    getUpdateValue,
   });
 
   const onCloseCreate = useCallback(() => setOpenCreate(false), []);
   const onClose = useCallback(() => setOpen(false), []);
-  const stopPropagation = useCallback((e: SyntheticEvent) => e.stopPropagation(), []);
+  const stopPropagation = useCallback(
+    (e: SyntheticEvent) => e.stopPropagation(),
+    []
+  );
 
   const hasExercises = exerciseRounds.length > 0;
+  const sortedIds = useMemo(
+    () => sortedItems.map((item) => item.roundExercise.id),
+    [sortedItems]
+  );
 
   return (
     <div
@@ -84,10 +118,7 @@ export default function Round({
           {hasExercises ? (
             mounted && (
               <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
-                <SortableContext
-                  items={sortedItems.map((item) => item.roundExercise.id)}
-                  strategy={verticalListSortingStrategy}
-                >
+                <SortableContext items={sortedIds} strategy={verticalListSortingStrategy}>
                   {sortedItems.map((roundExerciseData) => (
                     <ExerciseRound
                       key={roundExerciseData.roundExercise.id}

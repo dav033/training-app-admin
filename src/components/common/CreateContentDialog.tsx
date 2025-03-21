@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { CreateContentDialogProps } from "@/types";
-import { uploadFileAws } from "@/lib/awsUtils";
+import { CreateContentDialogProps, roundExercisType, dataItemType } from "@/types";
 import { Dialog } from "@/components/ui/dialog/Dialog";
 import { DialogHeader } from "@/components/ui/dialog/DialogHeader";
 import { DialogFooter } from "@/components/ui/dialog/DialogFooter";
@@ -12,11 +11,10 @@ import { DialogTrigger } from "@/components/ui/dialog/DialogTrigger";
 import { FiPlus } from "react-icons/fi";
 import { DialogContent } from "@/components/ui/dialog/DialogContent";
 import { DialogTitle } from "@/components/ui/dialog/DialogTitle";
-import { RoundExerciseService } from "@/app/services/roundExerciseService";
 import FileInput from "./FileInput";
-import { dataItemType } from "@/types";
+import { uploadFileAws } from "@/lib/awsUtils";
 
-// Función para capturar un frame a 1 segundo del video
+// Función para capturar un frame a 1 segundo del video (se utiliza solo para ejercicios)
 async function captureThumbnailFromVideo(videoFile: File): Promise<Blob> {
   return new Promise((resolve, reject) => {
     const video = document.createElement("video");
@@ -24,7 +22,6 @@ async function captureThumbnailFromVideo(videoFile: File): Promise<Blob> {
     video.crossOrigin = "anonymous";
     video.muted = true;
     video.playsInline = true;
-
     video.addEventListener("loadedmetadata", () => {
       if (video.duration < 1) {
         reject(new Error("El video es muy corto para capturar en el segundo 1."));
@@ -32,7 +29,6 @@ async function captureThumbnailFromVideo(videoFile: File): Promise<Blob> {
         video.currentTime = 1;
       }
     });
-
     video.addEventListener("seeked", () => {
       const canvas = document.createElement("canvas");
       canvas.width = video.videoWidth;
@@ -54,7 +50,6 @@ async function captureThumbnailFromVideo(videoFile: File): Promise<Blob> {
         0.8
       );
     });
-
     video.addEventListener("error", (e) => {
       reject(e);
     });
@@ -71,10 +66,9 @@ export default function CreateContentDialog(props: CreateContentDialogProps) {
     children,
     onUpdate,
     round,
-    type
+    type,
   } = props;
 
-  // Usamos contentFile para abarcar ambos casos (video o imagen)
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [contentFile, setContentFile] = useState<File | null>(null);
@@ -83,56 +77,72 @@ export default function CreateContentDialog(props: CreateContentDialogProps) {
   const handleCreate = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    // Validar que se haya ingresado el nombre y seleccionado el archivo
     if (!name.trim() || !contentFile) {
       alert("Por favor, ingresa un nombre y selecciona un archivo.");
       return;
     }
 
     try {
-      let createdItem;
-
       if (type === dataItemType.ROUTINE) {
-        // Para rutinas, se sube la imagen y se asigna siempre a thumbnailUrl
+        // Para rutinas, subimos la imagen y llamamos a onCreate.
         const thumbnailUrl = await uploadFileAws(contentFile);
-        createdItem = await onCreate({
+        const createdItem = await onCreate({
           name,
           description,
           thumbnailUrl: thumbnailUrl ?? undefined,
         });
+        console.log("Rutina creada (vía API):", createdItem);
+        // Si se requiere agregar un RoundExercise al estado (por ejemplo, para vincular una imagen a una ronda),
+        // se puede utilizar el callback onUpdate, aunque en la mayoría de los casos la rutina se crea sin round_exercises.
+        if (onUpdate && round) {
+          const roundExercise = {
+            id: Date.now(), // Valor temporal, pero se puede ajustar según se necesite
+            roundId: round.round.id,
+            exerciseId: createdItem.id,
+            exercisePosition: round.roundExerciseData.length + 1,
+            repetitions: "12", // Valor por defecto
+            roundExerciseType: roundExercisType.REPS, // Valor por defecto
+            time: 60, // Valor por defecto
+            temp: true,
+          };
+          console.log("Agregando roundExercise para rutina:", roundExercise);
+          onUpdate(roundExercise, createdItem);
+        }
       } else {
-        // Para ejercicios, se sube el video y se captura la miniatura
+        // Para ejercicios, se ejecuta la lógica original.
         const videoUrl = await uploadFileAws(contentFile);
         let thumbnailUrl: string | undefined = undefined;
         try {
           const thumbnailBlob = await captureThumbnailFromVideo(contentFile);
-          const thumbnailFile = new File(
-            [thumbnailBlob],
-            "thumbnail.jpg",
-            { type: "image/jpeg" }
-          );
+          const thumbnailFile = new File([thumbnailBlob], "thumbnail.jpg", { type: "image/jpeg" });
           thumbnailUrl = await uploadFileAws(thumbnailFile);
         } catch (thumbError) {
           console.error("Error al capturar la miniatura:", thumbError);
         }
-        createdItem = await onCreate({
+        const createdItem = await onCreate({
           name,
           description,
           videoUrl: videoUrl ?? undefined,
           thumbnailUrl: thumbnailUrl ?? undefined,
         });
+        console.log("Ejercicio creado (vía API):", createdItem);
+        if (onUpdate && round) {
+          const roundExercise = {
+            id: Date.now(), // Valor temporal
+            roundId: round.round.id,
+            exerciseId: createdItem.id,
+            exercisePosition: round.roundExerciseData.length + 1,
+            repetitions: "12", // Valor por defecto
+            roundExerciseType: roundExercisType.REPS, // Valor por defecto
+            time: 60, // Valor por defecto
+            temp: true,
+          };
+          console.log("Agregando roundExercise para ejercicio:", roundExercise);
+          onUpdate(roundExercise, createdItem);
+        }
       }
 
-      if (onUpdate && round) {
-        const roundExercise = await RoundExerciseService.createRoundExercise({
-          exerciseId: createdItem.id,
-          roundId: round.round.id,
-          exercisePosition: round.roundExerciseData.length + 1,
-        });
-        onUpdate(roundExercise, createdItem);
-      }
-
-      // Limpiar campos
+      // Limpiar campos y cerrar el dialog.
       setName("");
       setDescription("");
       setContentFile(null);
@@ -151,11 +161,7 @@ export default function CreateContentDialog(props: CreateContentDialogProps) {
         {children ? (
           children
         ) : (
-          <Button
-            variant="outline"
-            size="icon"
-            className="bg-blue-600 hover:bg-blue-700 text-white"
-          >
+          <Button variant="outline" size="icon" className="bg-blue-600 hover:bg-blue-700 text-white">
             <FiPlus className="h-4 w-4" />
           </Button>
         )}
@@ -178,8 +184,6 @@ export default function CreateContentDialog(props: CreateContentDialogProps) {
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Descripción"
             />
-
-            {/* Se ajusta el tipo de archivo a cargar según el tipo */}
             <FileInput
               setFile={setContentFile}
               setPreviewUrl={setPreviewUrl}

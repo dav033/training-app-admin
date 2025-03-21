@@ -1,60 +1,76 @@
+"use client";
+
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { RoundExerciseData, roundExercisType } from "@/types";
-import { useCallback, useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import image from "../../../../public/ejercicios-basicos-de-gimnasio.webp";
 import { Button } from "@/components/ui/Button";
 import { X } from "lucide-react";
-import { RoundExerciseService } from "@/app/services/roundExerciseService";
 import { CSS } from "@dnd-kit/utilities";
 import { useSortable } from "@dnd-kit/sortable";
 import EditRepetitionsTime from "./EditRepetitionsTime";
 
 interface ExerciseRoundProps {
   roundExerciseData: RoundExerciseData;
-  removeRoundExercise: (roundExerciseId: number) => void;
+  removeRoundExercise: (id: number) => void;
 }
 
-export default function ExerciseRound({
-  roundExerciseData,
-  removeRoundExercise,
-}: ExerciseRoundProps) {
+function ExerciseRound({ roundExerciseData, removeRoundExercise }: ExerciseRoundProps) {
   const {
     roundExercise: { id, repetitions, roundExerciseType, time },
     exercise: { name },
   } = roundExerciseData;
 
-  const { attributes, listeners, setNodeRef, transform, transition } =
-    useSortable({ id });
+  // Valores por defecto si son null o undefined
+  const initialType = roundExerciseType ?? roundExercisType.REPS;
+  const initialReps = repetitions && repetitions !== "" ? repetitions : "12";
+  const initialTime = time ?? 60;
 
-  const [currentType, setCurrentType] = useState<roundExercisType>(roundExerciseType);
-  const [currentReps, setCurrentReps] = useState<string>(repetitions);
-  const [currentTime, setCurrentTime] = useState<number>(time);
+  const [currentType, setCurrentType] = useState<roundExercisType>(initialType);
+  const [currentReps, setCurrentReps] = useState<string>(initialReps);
+  const [currentTime, setCurrentTime] = useState<number>(initialTime);
+
+  // Verifica que currentType no sea null, asignando el default si es necesario
+  useEffect(() => {
+    if (currentType == null) {
+      setCurrentType(roundExercisType.REPS);
+    }
+  }, [currentType]);
 
   const onUpdate = useCallback((value: roundExercisType) => {
-    setCurrentType(value);
+    setCurrentType(value ?? roundExercisType.REPS);
+    console.log("Actualizando tipo a:", value ?? roundExercisType.REPS);
   }, []);
 
   const onRepsChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    setCurrentReps(e.target.value);
+    const newReps = e.target.value || "12";
+    setCurrentReps(newReps);
+    console.log("Actualizando repeticiones a:", newReps);
   }, []);
 
   const onTimeChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    setCurrentTime(Number(e.target.value));
+    const newTime = Number(e.target.value) || 60;
+    setCurrentTime(newTime);
+    console.log("Actualizando tiempo a:", newTime);
   }, []);
 
-  const updateRoundExercise = useCallback(async () => {
-    await RoundExerciseService.updateRoundExercise({
+  // Actualización local con debounce (500ms)
+  const updateRoundExercise = useCallback(() => {
+    const updatedData = {
       ...roundExerciseData.roundExercise,
       repetitions: currentReps,
       time: currentTime,
-      roundExerciseType: currentType,
-    });
+      roundExerciseType: currentType ?? roundExercisType.REPS,
+    };
+    console.log("Datos actualizados para el round exercise:", updatedData);
   }, [roundExerciseData.roundExercise, currentReps, currentTime, currentType]);
 
   useEffect(() => {
     const timeout = setTimeout(updateRoundExercise, 500);
     return () => clearTimeout(timeout);
   }, [updateRoundExercise]);
+
+  const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id });
 
   const style = useMemo(
     () => ({
@@ -64,8 +80,8 @@ export default function ExerciseRound({
     [transform, transition]
   );
 
-  const deleteRoundExercise = useCallback(async () => {
-    await RoundExerciseService.deleteRoundExercise(id);
+  const deleteRoundExercise = useCallback(() => {
+    console.log("Eliminando round exercise con id:", id);
     removeRoundExercise(id);
   }, [id, removeRoundExercise]);
 
@@ -79,7 +95,7 @@ export default function ExerciseRound({
     >
       <div className="p-2 flex items-center space-x-3">
         <div className="relative w-12 h-12 rounded-md overflow-hidden flex-shrink-0">
-          <Image src={image.src} alt={name} layout="fill" objectFit="cover" />
+          <Image src={image.src} alt={name} fill style={{ objectFit: "cover" }} />
         </div>
         <div className="flex-grow">
           <h3 className="text-sm font-medium text-zinc-100">{name}</h3>
@@ -104,3 +120,5 @@ export default function ExerciseRound({
     </div>
   );
 }
+
+export default React.memo(ExerciseRound);

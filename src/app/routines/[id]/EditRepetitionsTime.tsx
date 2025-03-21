@@ -6,9 +6,8 @@ import { SelectContent } from "@/components/ui/select/SelectContent";
 import { SelectItem } from "@/components/ui/select/SelectItem";
 import { SelectTrigger } from "@/components/ui/select/SelectTrigger";
 import { EditRepetitionsTimeProps, roundExercisType } from "@/types";
-
 import { Clock, Repeat } from "lucide-react";
-import React from "react";
+import React, { useMemo } from "react";
 
 const EditRepetitionsTime = React.memo(
   ({
@@ -19,6 +18,16 @@ const EditRepetitionsTime = React.memo(
     onRepsChange,
     onUpdate,
   }: EditRepetitionsTimeProps) => {
+    // Determina el handler a usar según el tipo seleccionado
+    const handleInputChange = useMemo(() => {
+      return type === roundExercisType.REPS ? onRepsChange : onTimeChange;
+    }, [type, onRepsChange, onTimeChange]);
+
+    // Calcula el valor a mostrar en el input según el tipo
+    const inputValue = useMemo(() => {
+      return type === roundExercisType.REPS ? repetitions : time;
+    }, [type, repetitions, time]);
+
     return (
       <div className="flex items-center space-x-2 mt-1">
         <Select value={type} onValueChange={onUpdate}>
@@ -42,12 +51,9 @@ const EditRepetitionsTime = React.memo(
         </Select>
 
         <Input
-          className="w-[58px] h-8 text-xs bg-zinc-700 border-zinc-600    
-            focus:ring-[0.5px] focus:ring-zinc-950 focus:outline-none focus-ring-offset-0 focus:ring-opacity-50"
-          onChange={
-            type === roundExercisType.REPS ? onRepsChange : onTimeChange
-          }
-          value={type === roundExercisType.REPS ? repetitions : time}
+          className="w-[58px] h-8 text-xs bg-zinc-700 border-zinc-600 focus:ring-[0.5px] focus:ring-zinc-950 focus:outline-none focus-ring-offset-0 focus:ring-opacity-50"
+          onChange={handleInputChange}
+          value={inputValue}
         />
       </div>
     );
