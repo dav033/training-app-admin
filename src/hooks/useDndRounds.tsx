@@ -40,27 +40,29 @@ export default function useDndItems<T, U>({
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
     if (!over) return;
-
+  
     if (active.id !== over.id) {
+      // Ordenar los items según la posición actual
       const sorted = [...items].sort((a, b) => getPosition(a) - getPosition(b));
       const oldIndex = sorted.findIndex((item) => getId(item) === active.id);
       const newIndex = sorted.findIndex((item) => getId(item) === over.id);
       const newSortedItems = arrayMove(sorted, oldIndex, newIndex);
-
+  
+      // Actualizar la posición de cada item de forma inmediata
       newSortedItems.forEach((item, index) => {
         setPosition(item, index + 1);
       });
-
+  
+      // Actualizar el estado local de items
       setItems(newSortedItems);
-    }
-
-    if (timerRef.current) clearTimeout(timerRef.current);
-    timerRef.current = setTimeout(async () => {
-      const itemsToUpdate = items.map(getUpdateValue);
+  
+      // Llamar a updateItems inmediatamente usando el estado actualizado
+      const itemsToUpdate = newSortedItems.map(getUpdateValue);
       console.log("Updating items", itemsToUpdate);
       await updateItems(itemsToUpdate);
-    }, 5000);
+    }
   };
+  
 
   return { sensors, sortedItems, handleDragEnd };
 }

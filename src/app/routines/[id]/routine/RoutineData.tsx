@@ -1,7 +1,6 @@
 "use client";
 
 import { flushSync } from "react-dom";
-import { BiPlus } from "react-icons/bi";
 import {
   Exercice,
   RoundData,
@@ -13,7 +12,6 @@ import {
 } from "@/types";
 import { useState, useMemo, useCallback } from "react";
 import RoutineInformationComponent from "./RoutineInformationComponent";
-import { Button } from "@/components/ui/Button";
 import Rounds from "../Rounds";
 import PublicRoutine from "./PublicRoutine";
 import { RoutineService } from "@/app/services/routineService";
