@@ -124,6 +124,7 @@ export default function Round({
                       key={roundExerciseData.roundExercise.id}
                       roundExerciseData={roundExerciseData}
                       removeRoundExercise={removeRoundExercise}
+                      updateExerciseRoundRepetitions={updateExerciseRoundRepetitions}
                     />
                   ))}
                 </SortableContext>

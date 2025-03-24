@@ -13,9 +13,17 @@ import EditRepetitionsTime from "./EditRepetitionsTime";
 interface ExerciseRoundProps {
   roundExerciseData: RoundExerciseData;
   removeRoundExercise: (id: number) => void;
+  updateExerciseRoundRepetitions: (
+    roundExerciseId: number,
+    repetitions: number
+  ) => void;
 }
 
-function ExerciseRound({ roundExerciseData, removeRoundExercise }: ExerciseRoundProps) {
+function ExerciseRound({
+  roundExerciseData,
+  removeRoundExercise,
+  updateExerciseRoundRepetitions,
+}: ExerciseRoundProps) {
   const {
     roundExercise: { id, repetitions, roundExerciseType, time },
     exercise: { name },
@@ -42,17 +50,34 @@ function ExerciseRound({ roundExerciseData, removeRoundExercise }: ExerciseRound
     console.log("Actualizando tipo a:", value ?? roundExercisType.REPS);
   }, []);
 
-  const onRepsChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const newReps = e.target.value || "12";
-    setCurrentReps(newReps);
-    console.log("Actualizando repeticiones a:", newReps);
-  }, []);
+  // En ExerciseRound.tsx
 
-  const onTimeChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const newTime = Number(e.target.value) || 60;
-    setCurrentTime(newTime);
-    console.log("Actualizando tiempo a:", newTime);
-  }, []);
+  // Modificar la función onRepsChange
+  const onRepsChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const newReps = e.target.value; // Eliminar el || "12"
+      setCurrentReps(newReps);
+      const repsNumber = parseInt(newReps, 10) || 0; // Convertir vacío a 0
+      updateExerciseRoundRepetitions(
+        roundExerciseData.roundExercise.id,
+        repsNumber
+      );
+    },
+    [updateExerciseRoundRepetitions, roundExerciseData.roundExercise.id]
+  );
+
+  // Modificar la función onTimeChange
+  const onTimeChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const newTime = Number(e.target.value) || 0; // Asegurar número válido
+      setCurrentTime(newTime);
+      // Si existe una función para actualizar el tiempo, llamarla aquí
+      // updateExerciseRoundTime(id, newTime);
+    },
+    [
+      /* updateExerciseRoundTime, id */
+    ]
+  );
 
   // Actualización local con debounce (500ms)
   const updateRoundExercise = useCallback(() => {
@@ -70,7 +95,8 @@ function ExerciseRound({ roundExerciseData, removeRoundExercise }: ExerciseRound
     return () => clearTimeout(timeout);
   }, [updateRoundExercise]);
 
-  const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id });
+  const { attributes, listeners, setNodeRef, transform, transition } =
+    useSortable({ id });
 
   const style = useMemo(
     () => ({
@@ -95,7 +121,12 @@ function ExerciseRound({ roundExerciseData, removeRoundExercise }: ExerciseRound
     >
       <div className="p-2 flex items-center space-x-3">
         <div className="relative w-12 h-12 rounded-md overflow-hidden flex-shrink-0">
-          <Image src={image.src} alt={name} fill style={{ objectFit: "cover" }} />
+          <Image
+            src={image.src}
+            alt={name}
+            fill
+            style={{ objectFit: "cover" }}
+          />
         </div>
         <div className="flex-grow">
           <h3 className="text-sm font-medium text-zinc-100">{name}</h3>
